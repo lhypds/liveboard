@@ -1,0 +1,20 @@
+html {
+  background-color: #fafafa;
+  background-image: radial-gradient(circle, #d2d2d2 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-repeat: repeat;
+  scrollbar-width: none;
+}
+
+body {
+  font-family: Helvetica, sans-serif;
+  background: transparent;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+select:focus {
+  outline: none;
+}

@@ -1,0 +1,64 @@
+{
+  "common": {
+    "colon": "。",
+    "loading": "载入中..."
+  },
+  "button": {
+    "generate": "生成",
+    "create": "创建",
+    "edit": "编辑",
+    "share": "分享",
+    "delete": "删除",
+    "cancel": "取消",
+    "save": "保存",
+    "submit": "提交",
+    "notAllowSubmitted": "已作答",
+    "skip": "跳过",
+    "rewrite": "重写",
+    "complete": "完成",
+    "viewResults": "查看结果 →",
+    "viewMyResponse": "← 查看我的回答",
+    "addQuestion": "添加问题"
+  },
+  "toast": {
+    "linkCopied": "链接已复制到剪贴板",
+    "failedCopy": "复制链接失败",
+    "creating": "创建中",
+    "shareMessage": "q - 调查问卷生成器"
+  },
+  "home": {
+    "title": "Liveboard",
+    "noSurveys": "暂无调查。",
+    "untitled": "无标题",
+    "response_other": "{{count}} 个回答"
+  },
+  "createEdit": {
+    "createTitle": "创建调查",
+    "editTitle": "编辑",
+    "titleLabel": "标题",
+    "subtitleLabel": "副标题",
+    "descriptionLabel": "描述",
+    "invalidJson": "JSON 格式无效",
+    "titleRequired": "标题是必填项",
+    "questionRequired": "至少需要一个问题",
+    "invalidJsonSave": "JSON 格式无效 — 无法保存",
+    "invalidJsonAddQ": "JSON 格式无效 — 添加问题前请修复"
+  },
+  "questionCard": {
+    "otherOption": "其他",
+    "yes": "是",
+    "no": "否"
+  },
+  "export": {
+    "tooltip": "导出"
+  },
+  "edit": {
+    "tooltip": "编辑"
+  },
+  "info": {
+    "tooltip": "信息",
+    "dataSource": "数据来源",
+    "refreshFrequency": "刷新频率",
+    "lastUpdated": "最近更新"
+  }
+}

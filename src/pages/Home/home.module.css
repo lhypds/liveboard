@@ -1,0 +1,40 @@
+.page {
+  padding: 15px 30px;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.content {
+  width: 100%;
+}
+
+.content :global(.react-grid-placeholder) {
+  background: rgba(86, 86, 86, 0.2);
+  opacity: 1;
+}
+
+/* Disable the animation */
+.content :global(.react-grid-item),
+.content :global(.react-grid-item.cssTransforms),
+.content:global(.react-grid-layout) {
+  transition: none;
+}
