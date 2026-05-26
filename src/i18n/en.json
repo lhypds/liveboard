@@ -1,54 +1,9 @@
 {
-  "common": {
-    "colon": ".",
-    "loading": "Loading..."
-  },
   "button": {
-    "generate": "Generate",
-    "create": "Create",
-    "edit": "Edit",
-    "share": "Share",
-    "delete": "Delete",
-    "cancel": "Cancel",
-    "save": "Save",
-    "submit": "Submit",
-    "notAllowSubmitted": "Submitted",
-    "skip": "Skip",
-    "rewrite": "Rewrite",
-    "complete": "Complete",
-    "viewResults": "View Results →",
-    "viewMyResponse": "← My Responses",
-    "addQuestion": "Add question"
-  },
-  "toast": {
-    "linkCopied": "Link copied to clipboard",
-    "failedCopy": "Failed to copy link",
-    "creating": "Creating",
-    "shareMessage": "q"
+    "delete": "Delete"
   },
   "home": {
-    "title": "Liveboard",
-    "noSurveys": "Noq.",
-    "untitled": "Untitled",
-    "response_one": "{{count}} response",
-    "response_other": "{{count}} responses"
-  },
-  "createEdit": {
-    "createTitle": "Create",
-    "editTitle": "Edit",
-    "titleLabel": "Title",
-    "subtitleLabel": "Subtitle",
-    "descriptionLabel": "Description",
-    "invalidJson": "Invalid JSON",
-    "titleRequired": "Title is required",
-    "questionRequired": "At least one question is required",
-    "invalidJsonSave": "Invalid JSON — cannot save",
-    "invalidJsonAddQ": "Invalid JSON — fix it before adding a question"
-  },
-  "questionCard": {
-    "otherOption": "Other",
-    "yes": "Yes",
-    "no": "No"
+    "title": "Liveboard"
   },
   "export": {
     "tooltip": "Export"

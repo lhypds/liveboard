@@ -1,53 +1,9 @@
 {
-  "common": {
-    "colon": "。",
-    "loading": "読み込み中..."
-  },
   "button": {
-    "generate": "生成",
-    "create": "作成",
-    "edit": "編集",
-    "share": "共有",
-    "delete": "削除",
-    "cancel": "キャンセル",
-    "save": "保存",
-    "submit": "送信",
-    "notAllowSubmitted": "回答済み",
-    "skip": "スキップ",
-    "rewrite": "書き直す",
-    "complete": "完成",
-    "viewResults": "結果を見る →",
-    "viewMyResponse": "← 自分の回答を見る",
-    "addQuestion": "質問を追加"
-  },
-  "toast": {
-    "linkCopied": "リンクをコピーしました",
-    "failedCopy": "リンクのコピーに失敗しました",
-    "creating": "作成中",
-    "shareMessage": "q - アンケート生成ツール"
+    "delete": "削除"
   },
   "home": {
-    "title": "Liveboard",
-    "noSurveys": "アンケートなし。",
-    "untitled": "無題",
-    "response_other": "{{count}} 件の回答"
-  },
-  "createEdit": {
-    "createTitle": "アンケート作成",
-    "editTitle": "編集",
-    "titleLabel": "タイトル",
-    "subtitleLabel": "サブタイトル",
-    "descriptionLabel": "説明",
-    "invalidJson": "JSONが無効です",
-    "titleRequired": "タイトルは必須です",
-    "questionRequired": "少なくとも1つの質問が必要です",
-    "invalidJsonSave": "JSONが無効です — 保存できません",
-    "invalidJsonAddQ": "JSONが無効です — 質問を追加する前に修正してください"
-  },
-  "questionCard": {
-    "otherOption": "その他",
-    "yes": "はい",
-    "no": "いいえ"
+    "title": "Liveboard"
   },
   "export": {
     "tooltip": "エクスポート"
