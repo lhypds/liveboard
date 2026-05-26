@@ -15,7 +15,7 @@ const PORT = env.PORT || '4173';
 module.exports = {
   apps: [
     {
-      name: 'eitai-dashboard',
+      name: 'liveboard',
       script: 'npm',
       args: `run preview -- --host --port ${PORT}`,
       cwd: __dirname,
