@@ -1,6 +1,6 @@
 import type { ComponentType } from 'react'
 
-const raw = import.meta.glob('./*/index.ts', { eager: true })
+const raw = import.meta.glob('./modules/*/index.ts', { eager: true })
 
 const registry: Record<string, ComponentType> = {}
 for (const path in raw) {

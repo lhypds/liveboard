@@ -1,6 +1,8 @@
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { LayoutItem } from "react-grid-layout/legacy";
-import { HeatMap } from "@components";
+import modules from "@modules";
+
+const HeatMap = modules["HeatMap"] as ComponentType;
 
 export type Lang = "en" | "ja" | "zh";
 
