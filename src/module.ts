@@ -27,13 +27,11 @@ const raw = import.meta.glob("./modules/*/index.ts", { eager: true });
 
 const registry: Record<string, ModuleEntry> = {};
 
-if (Object.keys(raw).length) {
-  for (const path in raw) {
-    const mod = raw[path] as { default: ComponentType; config?: ModuleConfig };
-    if (!mod.default || !mod.config) continue;
-    const name = path.split("/").at(-2)!;
-    registry[name] = { component: mod.default, config: mod.config };
-  }
+for (const path in raw) {
+  const mod = raw[path] as { default: ComponentType; config?: ModuleConfig };
+  if (!mod.default || !mod.config) continue;
+  const name = path.split("/").at(-2)!;
+  registry[name] = { component: mod.default, config: mod.config };
 }
 
 export default registry;

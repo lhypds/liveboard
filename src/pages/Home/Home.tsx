@@ -24,11 +24,11 @@ function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
 function loadLayout(): Layout {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
+    if (!raw) return CARDS.map(toLayoutItem);
     const stored = JSON.parse(raw) as LayoutItem[];
     return stored.filter((it) => CARDS_BY_ID.has(it.i));
   } catch {
-    return [];
+    return CARDS.map(toLayoutItem);
   }
 }
 
