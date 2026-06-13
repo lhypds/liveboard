@@ -1,6 +1,7 @@
 {
   "button": {
-    "delete": "Delete"
+    "delete": "Delete",
+    "save": "Save"
   },
   "home": {
     "title": "Liveboard"
@@ -9,7 +10,8 @@
     "tooltip": "Export"
   },
   "edit": {
-    "tooltip": "Edit"
+    "tooltip": "Edit",
+    "titleLabel": "Title"
   },
   "info": {
     "tooltip": "Info",

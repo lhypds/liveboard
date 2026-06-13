@@ -1,6 +1,7 @@
 {
   "button": {
-    "delete": "删除"
+    "delete": "删除",
+    "save": "保存"
   },
   "home": {
     "title": "Liveboard"
@@ -9,7 +10,8 @@
     "tooltip": "导出"
   },
   "edit": {
-    "tooltip": "编辑"
+    "tooltip": "编辑",
+    "titleLabel": "标题"
   },
   "info": {
     "tooltip": "信息",

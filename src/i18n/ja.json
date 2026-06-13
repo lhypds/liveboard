@@ -1,6 +1,7 @@
 {
   "button": {
-    "delete": "削除"
+    "delete": "削除",
+    "save": "保存"
   },
   "home": {
     "title": "Liveboard"
@@ -9,7 +10,8 @@
     "tooltip": "エクスポート"
   },
   "edit": {
-    "tooltip": "編集"
+    "tooltip": "編集",
+    "titleLabel": "タイトル"
   },
   "info": {
     "tooltip": "情報",

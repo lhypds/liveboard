@@ -14,6 +14,8 @@ const COLS = 125;
 const GRID_WIDTH = (CELL + GAP) * COLS - GAP;
 const STORAGE_KEY = "home.layout.v4";
 
+type StoredItem = LayoutItem & { title?: string };
+
 const CARDS_BY_ID = new Map(CARDS.map((c) => [c.i, c]));
 
 function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
@@ -21,12 +23,11 @@ function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
   return { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic };
 }
 
-function loadLayout(): Layout {
+function loadStored(): StoredItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return CARDS.map(toLayoutItem);
-    const stored = JSON.parse(raw) as LayoutItem[];
-    return stored.filter((it) => CARDS_BY_ID.has(it.i));
+    return (JSON.parse(raw) as StoredItem[]).filter((it) => CARDS_BY_ID.has(it.i));
   } catch {
     return CARDS.map(toLayoutItem);
   }
@@ -39,11 +40,32 @@ function nextY(layout: Layout): number {
 export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as Lang;
-  const [layout, setLayout] = useState<Layout>(loadLayout);
+  const [layout, setLayout] = useState<Layout>(loadStored);
+  const [titles, setTitles] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      loadStored()
+        .filter((it): it is StoredItem & { title: string } => Boolean(it.title))
+        .map((it) => [it.i, it.title]),
+    ),
+  );
 
   const persist = (next: Layout) => {
     setLayout(next);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    const toStore: StoredItem[] = next.map((item) => ({
+      ...item,
+      ...(titles[item.i] ? { title: titles[item.i] } : {}),
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+  };
+
+  const handleSaveTitle = (id: string, title: string) => {
+    const next = { ...titles, [id]: title };
+    setTitles(next);
+    const toStore: StoredItem[] = layout.map((item) => ({
+      ...item,
+      ...(next[item.i] ? { title: next[item.i] } : {}),
+    }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
   };
 
   const present = new Set(layout.map((it) => it.i));
@@ -89,17 +111,21 @@ export default function Home() {
           return (
             <div key={item.i}>
               <Card
-                title={card.title[lang]}
+                title={titles[item.i] ?? card.title[lang]}
                 actions={
                   <>
                     <Info
-                      title={card.title[lang]}
+                      title={titles[item.i] ?? card.title[lang]}
                       dataSource={card.info.dataSource[lang]}
                       refreshFrequency={card.info.refreshFrequency[lang]}
                       lastUpdated={card.info.lastUpdated}
                     />
                     <Export />
-                    <Edit onDelete={() => handleDelete(item.i)} />
+                    <Edit
+                      title={titles[item.i] ?? card.title[lang]}
+                      onSave={(t) => handleSaveTitle(item.i, t)}
+                      onDelete={() => handleDelete(item.i)}
+                    />
                   </>
                 }
               >
