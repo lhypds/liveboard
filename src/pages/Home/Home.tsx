@@ -20,6 +20,11 @@ const LAYOUT_FIELDS = new Set(["x", "y", "w", "h", "minW", "minH", "maxW", "maxH
 
 const CARDS_BY_ID = new Map(CARDS.map((c) => [c.i, c]));
 
+function moduleId(instanceId: string): string {
+  const sep = instanceId.indexOf(":");
+  return sep === -1 ? instanceId : instanceId.slice(0, sep);
+}
+
 function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
   const { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic } = card;
   return { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic };
@@ -29,7 +34,7 @@ function loadStored(): StoredItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return CARDS.map(toLayoutItem);
-    return (JSON.parse(raw) as StoredItem[]).filter((it) => CARDS_BY_ID.has(it.i));
+    return (JSON.parse(raw) as StoredItem[]).filter((it) => CARDS_BY_ID.has(moduleId(it.i)));
   } catch {
     return CARDS.map(toLayoutItem);
   }
@@ -88,16 +93,13 @@ export default function Home() {
     saveToStorage(nextLayout, nextConfigs);
   };
 
-  const present = new Set(layout.map((it) => it.i));
-  const addItems = CARDS.filter((c) => !present.has(c.i)).map((c) => ({
-    id: c.i,
-    label: c.title[lang],
-  }));
+  const addItems = CARDS.map((c) => ({ id: c.i, label: c.title[lang] }));
 
   const handleAdd = (id: string) => {
     const card = CARDS_BY_ID.get(id);
-    if (!card || present.has(id)) return;
-    persist([...layout, { ...toLayoutItem(card), x: 0, y: nextY(layout) }]);
+    if (!card) return;
+    const instanceId = `${id}:${Date.now()}`;
+    persist([...layout, { ...toLayoutItem(card), i: instanceId, x: 0, y: nextY(layout) }]);
   };
 
   const handleDelete = (id: string) => {
@@ -126,7 +128,7 @@ export default function Home() {
         width={GRID_WIDTH}
       >
         {layout.map((item) => {
-          const card = CARDS_BY_ID.get(item.i);
+          const card = CARDS_BY_ID.get(moduleId(item.i));
           if (!card) return null;
           const cfg = configs[item.i] ?? {};
           const cfgTitle = cfg.title as Record<string, string> | undefined;
