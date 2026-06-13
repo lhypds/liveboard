@@ -17,8 +17,9 @@ Setup & Run
 
 Run  
 `./setup.sh`  
-
 If the `modules` folder doesn't exist, it will pull the [liveboard-mod](https://github.com/lhypds/liveboard-mod) repository.
+
+Fillup the `.env` file.  
 
 Then, run  
 `npm run dev`  
