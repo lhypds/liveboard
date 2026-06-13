@@ -1,26 +1,38 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ActionButton, Modal } from "@ui";
+import type { TextareaHTMLAttributes } from "react";
+import { ActionButton, Modal, TextArea as TextAreaBase } from "@ui";
 import styles from "./edit.module.css";
 
+const TextArea = TextAreaBase as React.ComponentType<TextareaHTMLAttributes<HTMLTextAreaElement> & { minHeight?: number }>;
+
 type EditProps = {
-  title?: string;
-  onSave?: (title: string) => void;
+  config?: Record<string, unknown>;
+  onSave?: (config: Record<string, unknown>) => void;
   onDelete?: () => void;
 };
 
-export default function Edit({ title = "", onSave, onDelete }: EditProps) {
+export default function Edit({ config = {}, onSave, onDelete }: EditProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(title);
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (open) setDraft(title);
-  }, [open, title]);
+    if (open) {
+      setDraft(JSON.stringify(config, null, 2));
+      setError("");
+    }
+  }, [open]);
 
   function handleSave() {
-    onSave?.(draft);
-    setOpen(false);
+    try {
+      const parsed = JSON.parse(draft) as Record<string, unknown>;
+      onSave?.(parsed);
+      setOpen(false);
+    } catch {
+      setError(t("edit.invalidJson"));
+    }
   }
 
   function handleDelete() {
@@ -37,15 +49,17 @@ export default function Edit({ title = "", onSave, onDelete }: EditProps) {
         </svg>
       </ActionButton>
       <Modal isOpen={open} onClose={() => setOpen(false)} title={t("edit.tooltip")}>
-        <div className={styles.field}>
-          <label className={styles.label}>{t("edit.titleLabel")}</label>
-          <input
-            className={styles.input}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSave()}
-          />
-        </div>
+        <TextArea
+          className={styles.json}
+          value={draft}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+            setDraft(e.target.value);
+            setError("");
+          }}
+          minHeight={240}
+          spellCheck={false}
+        />
+        {error && <span className={styles.error}>{error}</span>}
         <div className={styles.buttons}>
           <button type="button" className={styles.saveButton} onClick={handleSave}>
             {t("button.save")}

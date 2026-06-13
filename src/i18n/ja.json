@@ -11,7 +11,7 @@
   },
   "edit": {
     "tooltip": "編集",
-    "titleLabel": "タイトル"
+"invalidJson": "JSONが無効です"
   },
   "info": {
     "tooltip": "情報",

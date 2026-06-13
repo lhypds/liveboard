@@ -11,7 +11,7 @@
   },
   "edit": {
     "tooltip": "编辑",
-    "titleLabel": "标题"
+"invalidJson": "JSON 格式无效"
   },
   "info": {
     "tooltip": "信息",

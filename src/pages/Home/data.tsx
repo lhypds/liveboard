@@ -7,10 +7,11 @@ type InfoField = Record<Lang, string>;
 
 export type CardConfig = LayoutItem & {
   title: Record<Lang, string>;
-  content: ReactNode;
+  content: (config: Record<string, unknown>) => ReactNode;
   info: {
     dataSource: InfoField;
     refreshFrequency: InfoField;
+    refreshAgeMinutes: number;
     lastUpdated: Date;
   };
 };
@@ -20,10 +21,11 @@ const BOOT = Date.now();
 export const CARDS: CardConfig[] = Object.values(modules).map(({ component: Comp, config: c }) => ({
   i: c.i,
   title: c.title as Record<Lang, string>,
-  content: <Comp />,
+  content: (config: Record<string, unknown>) => <Comp config={config} />,
   info: {
     dataSource: c.info.dataSource as InfoField,
     refreshFrequency: c.info.refreshFrequency as InfoField,
+    refreshAgeMinutes: c.info.refreshAgeMinutes,
     lastUpdated: new Date(BOOT - c.info.refreshAgeMinutes * 60_000),
   },
   x: c.x,

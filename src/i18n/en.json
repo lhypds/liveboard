@@ -11,7 +11,7 @@
   },
   "edit": {
     "tooltip": "Edit",
-    "titleLabel": "Title"
+"invalidJson": "Invalid JSON"
   },
   "info": {
     "tooltip": "Info",

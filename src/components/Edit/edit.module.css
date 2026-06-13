@@ -1,31 +1,30 @@
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.label {
+.json {
+  font-family: ui-monospace, monospace;
   font-size: 12px;
-  color: #64748b;
-}
-
-.input {
-  border: 1px solid #e2e8f0;
-  padding: 6px 10px;
-  font-size: 13px;
-  outline: none;
-  width: 100%;
   box-sizing: border-box;
+  height: 240px;
 }
 
-.input:focus {
-  border-color: #0f172a;
+.json:focus {
+  outline: none;
+  border-color: #ccc;
+}
+
+.error {
+  display: block;
+  font-size: 11px;
+  color: #dc2626;
+  margin-top: 4px;
 }
 
 .buttons {
   display: flex;
   gap: 8px;
+  margin-top: 12px;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding-bottom: 4px;
 }
 
 .saveButton {
