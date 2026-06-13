@@ -20,6 +20,7 @@ Run
 If the `modules` folder doesn't exist, it will pull the [liveboard-mod](https://github.com/lhypds/liveboard-mod) repository.
 
 Fillup the `.env` file.  
+Mapbox token, etc.  
 
 Then, run  
 `npm run dev`  
