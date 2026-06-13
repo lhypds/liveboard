@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import styles from "./add.module.css";
 
-type AddItem = { id: string; label: string };
+type AddItem = { id: string; label: string; disabled?: boolean };
 
 type AddProps = {
   items?: AddItem[];
@@ -36,11 +36,12 @@ export default function Add({ items = [], onAdd }: AddProps) {
         </svg>
       </button>
       <div className={styles.dropdown}>
-        {items.map(({ id, label }) => (
+        {items.map(({ id, label, disabled }) => (
           <button
             key={id}
             type="button"
             className={styles.option}
+            disabled={disabled}
             onClick={() => pick(id)}
           >
             {label}

@@ -70,3 +70,13 @@
   background: black;
   color: white;
 }
+
+.option:disabled {
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.option:disabled:hover {
+  background: #ffffff;
+  color: #aaa;
+}

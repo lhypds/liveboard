@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
+import moduleConfig from "@modules/modules.config.json";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
 import { Add, Edit, Export, Info, LanguageSwitcher } from "@components";
 import { Card } from "@ui";
@@ -93,7 +94,14 @@ export default function Home() {
     saveToStorage(nextLayout, nextConfigs);
   };
 
-  const addItems = CARDS.map((c) => ({ id: c.i, label: c.title[lang] }));
+  const activeModuleIds = new Set(layout.map((it) => moduleId(it.i)));
+  const addItems = CARDS.map((c) => ({
+    id: c.i,
+    label: c.title[lang],
+    disabled:
+      moduleConfig[c.i as keyof typeof moduleConfig]?.allowMultipleInstances === false &&
+      activeModuleIds.has(c.i),
+  }));
 
   const handleAdd = (id: string) => {
     const card = CARDS_BY_ID.get(id);
