@@ -17,12 +17,14 @@ Sample module: Tokyo Heat Map
 Setup & Run
 -----------
 
+First, fillup the `.env` file.  
+
+`.env`  
+`COMPONENTS_GIT_URL` is the git url of the liveboard modules.  
+If not set and components folder not exist, it will pull the [liveboard-mod](https://github.com/lhypds/liveboard-mod) template repository.
+
 Run  
 `./setup.sh`  
-If the `modules` folder doesn't exist, it will pull the [liveboard-mod](https://github.com/lhypds/liveboard-mod) repository.
-
-Fillup the `.env` file.  
-Mapbox token, etc.  
 
 Then, run  
 `npm run dev`  
