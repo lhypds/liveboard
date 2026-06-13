@@ -11,11 +11,12 @@ if (fs.existsSync(envPath)) {
 }
 
 const PORT = env.PORT || '4173';
+const PM2_NAME = env.PM2_NAME || 'liveboard';
 
 module.exports = {
   apps: [
     {
-      name: 'liveboard',
+      name: PM2_NAME,
       script: 'npm',
       args: `run preview -- --host --port ${PORT}`,
       cwd: __dirname,
