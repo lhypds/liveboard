@@ -33,7 +33,7 @@ Setup and use `start.sh` or `restart.sh`.
 Modules
 -------
 
-In `src/modules` it will load module components.
+In `src/modules` it will load module components.  
 
 Templete  
 Clone [liveboard-mod](https://github.com/lhypds/liveboard-mod), rename the folder to `modules` to use.
