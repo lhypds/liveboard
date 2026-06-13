@@ -99,7 +99,19 @@ export default function Home() {
     const card = CARDS_BY_ID.get(id);
     if (!card) return;
     const instanceId = `${id}:${Date.now()}`;
-    persist([...layout, { ...toLayoutItem(card), i: instanceId, x: 0, y: nextY(layout) }]);
+    const newLayout = [...layout, { ...toLayoutItem(card), i: instanceId, x: 0, y: nextY(layout) }];
+    const defaultConfig = {
+      title: { ...card.title },
+      info: {
+        dataSource: { ...card.info.dataSource },
+        refreshFrequency: { ...card.info.refreshFrequency },
+        refreshAgeMinutes: card.info.refreshAgeMinutes,
+      },
+    };
+    const nextConfigs = { ...configs, [instanceId]: defaultConfig };
+    setLayout(newLayout);
+    setConfigs(nextConfigs);
+    saveToStorage(newLayout, nextConfigs);
   };
 
   const handleDelete = (id: string) => {
