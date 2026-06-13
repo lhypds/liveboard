@@ -108,13 +108,14 @@ export default function Home() {
     if (!card) return;
     const instanceId = `${id}:${Date.now()}`;
     const newLayout = [...layout, { ...toLayoutItem(card), i: instanceId, x: 0, y: nextY(layout) }];
-    const defaultConfig = {
+    const defaultConfig: Record<string, unknown> = {
       title: { ...card.title },
       info: {
         dataSource: { ...card.info.dataSource },
         refreshFrequency: { ...card.info.refreshFrequency },
         refreshAgeMinutes: card.info.refreshAgeMinutes,
       },
+      ...(card.comp ? { comp: { ...card.comp } } : {}),
     };
     const nextConfigs = { ...configs, [instanceId]: defaultConfig };
     setLayout(newLayout);

@@ -14,6 +14,7 @@ export type CardConfig = LayoutItem & {
     refreshAgeMinutes: number;
     lastUpdated: Date;
   };
+  comp?: Record<string, unknown>;
 };
 
 const BOOT = Date.now();
@@ -36,4 +37,5 @@ export const CARDS: CardConfig[] = Object.values(modules).map(({ component: Comp
   minH: c.minH,
   maxW: c.maxW,
   maxH: c.maxH,
+  ...(c.comp ? { comp: { ...c.comp } } : {}),
 }));
