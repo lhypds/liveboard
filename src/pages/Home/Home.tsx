@@ -145,14 +145,6 @@ export default function Home() {
               : card.info.lastUpdated;
 
           const editConfig: Record<string, unknown> = {
-            x: item.x,
-            y: item.y,
-            w: item.w,
-            h: item.h,
-            ...(item.minW !== undefined ? { minW: item.minW } : {}),
-            ...(item.minH !== undefined ? { minH: item.minH } : {}),
-            ...(item.maxW !== undefined ? { maxW: item.maxW } : {}),
-            ...(item.maxH !== undefined ? { maxH: item.maxH } : {}),
             title: cfgTitle ?? { ...card.title },
             info: {
               dataSource: cfgInfo?.dataSource ?? { ...card.info.dataSource },
