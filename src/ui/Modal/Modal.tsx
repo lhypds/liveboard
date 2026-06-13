@@ -58,8 +58,16 @@ const Modal = ({
     }
   };
 
+  const stopPropagation = (e: React.SyntheticEvent) => e.stopPropagation();
+
   return (
-    <div className={styles.overlay} onClick={handleOverlayClick}>
+    <div
+      className={styles.overlay}
+      onClick={handleOverlayClick}
+      onMouseDown={stopPropagation}
+      onPointerDown={stopPropagation}
+      onTouchStart={stopPropagation}
+    >
       <div className={[styles.modal, className].filter(Boolean).join(" ")}>
         <div className={styles.header}>
           {title && <span className={styles.title}>{title}</span>}

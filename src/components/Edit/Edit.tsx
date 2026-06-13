@@ -56,7 +56,6 @@ export default function Edit({ config = {}, onSave, onDelete }: EditProps) {
             setDraft(e.target.value);
             setError("");
           }}
-          minHeight={240}
           spellCheck={false}
         />
         {error && <span className={styles.error}>{error}</span>}
