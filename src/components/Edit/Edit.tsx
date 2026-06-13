@@ -1,14 +1,13 @@
-import { useState, type ComponentType } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActionButton, Modal } from "@ui";
 import styles from "./edit.module.css";
 
 type EditProps = {
   onDelete?: () => void;
-  settings?: ComponentType<{ onClose?: () => void }>;
 };
 
-export default function Edit({ onDelete, settings: Settings }: EditProps) {
+export default function Edit({ onDelete }: EditProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -26,12 +25,6 @@ export default function Edit({ onDelete, settings: Settings }: EditProps) {
         </svg>
       </ActionButton>
       <Modal isOpen={open} onClose={() => setOpen(false)} title={t("edit.tooltip")}>
-        {Settings && (
-          <>
-            <Settings onClose={() => setOpen(false)} />
-            <div className={styles.divider} />
-          </>
-        )}
         <button type="button" className={styles.deleteButton} onClick={handleDelete}>
           {t("button.delete")}
         </button>

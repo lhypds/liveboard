@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
@@ -7,7 +7,6 @@ import { Card } from "@ui";
 import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
 import { CARDS, type Lang } from "./data";
-import modules from "@modules";
 
 const CELL = 20;
 const GAP = 20;
@@ -16,11 +15,6 @@ const GRID_WIDTH = (CELL + GAP) * COLS - GAP;
 const STORAGE_KEY = "home.layout.v4";
 
 const CARDS_BY_ID = new Map(CARDS.map((c) => [c.i, c]));
-const MODULE_SETTINGS = new Map(
-  Object.values(modules)
-    .filter((m) => m.settings)
-    .map((m) => [m.config.i, m.settings!])
-);
 
 function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
   const { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic } = card;
@@ -51,19 +45,6 @@ export default function Home() {
     setLayout(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
   };
-
-  useEffect(() => {
-    function onIFrameLayout(e: Event) {
-      const { i, x, y, w, h } = (e as CustomEvent<{ i: string; x: number; y: number; w: number; h: number }>).detail;
-      setLayout((prev) => {
-        const next = prev.map((it) => (it.i === i ? { ...it, x, y, w, h } : it));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        return next;
-      });
-    }
-    window.addEventListener("iframe:update-layout", onIFrameLayout);
-    return () => window.removeEventListener("iframe:update-layout", onIFrameLayout);
-  }, []);
 
   const present = new Set(layout.map((it) => it.i));
   const addItems = CARDS.filter((c) => !present.has(c.i)).map((c) => ({
@@ -118,7 +99,7 @@ export default function Home() {
                       lastUpdated={card.info.lastUpdated}
                     />
                     <Export />
-                    <Edit onDelete={() => handleDelete(item.i)} settings={MODULE_SETTINGS.get(item.i)} />
+                    <Edit onDelete={() => handleDelete(item.i)} />
                   </>
                 }
               >
