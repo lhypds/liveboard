@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import moduleConfig from "@modules/modules.config.json";
@@ -55,6 +55,11 @@ export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as Lang;
   const [layout, setLayout] = useState<Layout>(loadStored);
+
+  useEffect(() => {
+    document.title = t("home.title");
+  }, [t, i18n.language]);
+
   const [configs, setConfigs] = useState<Record<string, Record<string, unknown>>>(() =>
     Object.fromEntries(
       loadStored()
@@ -84,9 +89,7 @@ export default function Home() {
       else moduleConfig[k] = v;
     }
 
-    const nextLayout = layout.map((item) =>
-      item.i === id ? { ...item, ...layoutPatch } : item,
-    );
+    const nextLayout = layout.map((item) => (item.i === id ? { ...item, ...layoutPatch } : item));
     const nextConfigs = { ...configs, [id]: moduleConfig };
 
     setLayout(nextLayout);
@@ -98,9 +101,7 @@ export default function Home() {
   const addItems = CARDS.map((c) => ({
     id: c.i,
     label: c.title[lang],
-    disabled:
-      moduleConfig[c.i as keyof typeof moduleConfig]?.allowMultipleInstances === false &&
-      activeModuleIds.has(c.i),
+    disabled: moduleConfig[c.i as keyof typeof moduleConfig]?.allowMultipleInstances === false && activeModuleIds.has(c.i),
   }));
 
   const handleAdd = (id: string) => {
@@ -156,10 +157,8 @@ export default function Home() {
           const cfgInfo = cfg.info as CfgInfo | undefined;
 
           const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
-          const displayDataSource =
-            cfgInfo?.dataSource?.[lang] ?? card.info.dataSource[lang];
-          const displayRefreshFrequency =
-            cfgInfo?.refreshFrequency?.[lang] ?? card.info.refreshFrequency[lang];
+          const displayDataSource = cfgInfo?.dataSource?.[lang] ?? card.info.dataSource[lang];
+          const displayRefreshFrequency = cfgInfo?.refreshFrequency?.[lang] ?? card.info.refreshFrequency[lang];
           const displayLastUpdated =
             cfgInfo?.refreshAgeMinutes !== undefined
               ? new Date(Date.now() - cfgInfo.refreshAgeMinutes * 60_000)
@@ -172,9 +171,7 @@ export default function Home() {
               refreshFrequency: cfgInfo?.refreshFrequency ?? { ...card.info.refreshFrequency },
               refreshAgeMinutes: cfgInfo?.refreshAgeMinutes ?? card.info.refreshAgeMinutes,
             },
-            ...Object.fromEntries(
-              Object.entries(cfg).filter(([k]) => k !== "title" && k !== "info"),
-            ),
+            ...Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== "title" && k !== "info")),
           };
 
           return (
@@ -190,11 +187,7 @@ export default function Home() {
                       lastUpdated={displayLastUpdated}
                     />
                     <Export />
-                    <Edit
-                      config={editConfig}
-                      onSave={(c) => handleSaveConfig(item.i, c)}
-                      onDelete={() => handleDelete(item.i)}
-                    />
+                    <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />
                   </>
                 }
               >

@@ -3,11 +3,12 @@ import { initReactI18next } from "react-i18next";
 import en from "./en.json";
 import zh from "./zh.json";
 import ja from "./ja.json";
+import boardConfig from "../../board.config.json";
 
 const TITLE = {
-  en: import.meta.env.VITE_TITLE_EN || "Liveboard",
-  zh: import.meta.env.VITE_TITLE_ZH || "Liveboard",
-  ja: import.meta.env.VITE_TITLE_JA || "Liveboard",
+  en: boardConfig.title?.en || "Liveboard",
+  zh: boardConfig.title?.zh || "Liveboard",
+  ja: boardConfig.title?.ja || "Liveboard",
 };
 
 const savedLang = localStorage.getItem("lang");

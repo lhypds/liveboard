@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# Load COMPONENTS_GIT_URL from .env if present
-if [ -f .env ]; then
-  COMPONENTS_GIT_URL=$(grep '^COMPONENTS_GIT_URL=' .env | cut -d'=' -f2-)
+# Load componentsGitUrl from board.config.json if present
+if [ -f board.config.json ]; then
+  COMPONENTS_GIT_URL=$(node -e "const c=require('./board.config.json'); process.stdout.write(c.componentsGitUrl || '')" 2>/dev/null)
 fi
 
 echo "==> Pulling liveboard..."
