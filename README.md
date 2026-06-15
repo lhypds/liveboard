@@ -17,11 +17,8 @@ Sample module: Tokyo Heat Map
 Setup & Run
 -----------
 
-First, fillup the `.env` file.  
-
-`.env`  
-`COMPONENTS_GIT_URL` is the git url of the liveboard modules.  
-If not set and components folder not exist, it will pull the [liveboard-mod](https://github.com/lhypds/liveboard-mod) template repository.
+First, fillup the `board.config.json` file.  
+`componentsGitUrl` is the URL of the git repository that contains the modules.  
 
 Run  
 `./setup.sh`  
@@ -38,6 +35,4 @@ Modules
 -------
 
 In `src/modules` it will load module components.  
-
-Templete  
-Clone [liveboard-mod](https://github.com/lhypds/liveboard-mod), rename the folder to `modules` to use.
+Repo named `liveboard-mod-*` will be loaded as `*` module.  
