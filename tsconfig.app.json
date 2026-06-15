@@ -41,10 +41,7 @@
         "./src/utils/*"
       ],
       "@modules": [
-        "./src/modules"
-      ],
-      "@modules/*": [
-        "./src/modules/*"
+        "./src/module.ts"
       ]
     },
     /* Linting */

@@ -15,6 +15,7 @@ export type CardConfig = LayoutItem & {
     lastUpdated: Date;
   };
   comp?: Record<string, unknown>;
+  allowMultipleInstances?: boolean;
 };
 
 const BOOT = Date.now();
@@ -38,4 +39,5 @@ export const CARDS: CardConfig[] = Object.values(modules).map(({ component: Comp
   maxW: c.maxW,
   maxH: c.maxH,
   ...(c.comp ? { comp: { ...c.comp } } : {}),
+  ...(c.allowMultipleInstances !== undefined ? { allowMultipleInstances: c.allowMultipleInstances } : {}),
 }));
