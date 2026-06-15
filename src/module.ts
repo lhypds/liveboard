@@ -45,7 +45,7 @@ for (const path in raw) {
     const config = mod.config as ModuleConfig | undefined;
     if (!config) continue;
     const name = path.split("/").at(-2)!;
-    registry[name] = { component: def as ComponentType, config };
+    registry[name] = { component: def as ComponentType<{ config: Record<string, unknown> }>, config };
   }
 }
 
