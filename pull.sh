@@ -18,6 +18,7 @@ if [ ${#COMPONENTS_GIT_URLS[@]} -gt 0 ]; then
   mkdir -p src/modules
   for url in "${COMPONENTS_GIT_URLS[@]}"; do
     dir_name=$(basename "$url" .git)
+    dir_name="${dir_name#liveboard-mod-}"
     dest="src/modules/$dir_name"
     if [ -d "$dest/.git" ]; then
       echo "  Pulling $dest..."

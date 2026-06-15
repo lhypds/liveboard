@@ -11,11 +11,7 @@ if [ ! -f board.config.json ]; then
   echo "Copied board.config.json.example to board.config.json"
 fi
 
-if [ ! -d src/modules ]; then
-  echo "Modules folder not found. Pulling liveboard-mod..."
-  git clone https://github.com/lhypds/liveboard-mod.git src/modules
-  echo "Modules pulled."
-fi
+bash pull.sh
 
 echo "Installing dependencies..."
 npm install
