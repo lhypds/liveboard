@@ -34,7 +34,8 @@ export default function LayoutIO({ layout, configs, onImport }: LayoutIOProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "layout.json";
+    const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    a.download = `layout_${ts}.json`;
     a.click();
     URL.revokeObjectURL(url);
     setOpen(false);
