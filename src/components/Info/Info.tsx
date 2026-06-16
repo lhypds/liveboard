@@ -49,23 +49,15 @@ export default function Info({ title, sections, lastUpdated }: InfoProps) {
         </svg>
       </ActionButton>
       <Modal isOpen={open} onClose={() => setOpen(false)} title={title ?? t("info.tooltip")}>
-        {sections.map((section, i) => {
-          const sectionTitle = resolve(section.title, lang);
-          return (
-            <div key={i} className={styles.section}>
-              {sectionTitle && <h3 className={styles.sectionTitle}>{sectionTitle}</h3>}
-              <dl className={styles.list}>
-                {section.items.map((item, j) => (
-                  <Fragment key={j}>
-                    <dt className={styles.label}>{resolve(item.key, lang)}</dt>
-                    <dd className={styles.value}>{resolve(item.value, lang)}</dd>
-                  </Fragment>
-                ))}
-              </dl>
-            </div>
-          );
-        })}
         <dl className={styles.list}>
+          {sections.flatMap((section) =>
+            section.items.map((item, j) => (
+              <Fragment key={j}>
+                <dt className={styles.label}>{resolve(item.key, lang)}</dt>
+                <dd className={styles.value}>{resolve(item.value, lang)}</dd>
+              </Fragment>
+            ))
+          )}
           <dt className={styles.label}>{t("info.lastUpdated")}</dt>
           <dd className={styles.value}>{formatTimestamp(lastUpdated, lang)}</dd>
         </dl>
