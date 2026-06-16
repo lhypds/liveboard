@@ -167,10 +167,7 @@ export default function Home() {
 
           const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
           const displaySections = cfgInfo ?? card.info;
-          const displayLastUpdated =
-            cfgRefreshAge !== undefined
-              ? new Date(Date.now() - cfgRefreshAge * 60_000)
-              : card.lastUpdated;
+          const displayLastUpdated = card.fileLastUpdated;
 
           const editConfig: Record<string, unknown> = {
             title: cfgTitle ?? { ...card.title },

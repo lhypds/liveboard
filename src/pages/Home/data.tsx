@@ -11,20 +11,18 @@ export type CardConfig = LayoutItem & {
   title: I18n;
   content: (config: Record<string, unknown>) => ReactNode;
   refreshAgeMinutes: number;
-  lastUpdated: Date;
+  fileLastUpdated?: string;
   info: InfoSection[];
   comp?: Record<string, unknown>;
   allowMultipleInstances?: boolean;
 };
-
-const BOOT = Date.now();
 
 export const CARDS: CardConfig[] = Object.values(modules).map(({ component: Comp, config: c }) => ({
   i: c.i,
   title: c.title as I18n,
   content: (config: Record<string, unknown>) => <Comp config={config} />,
   refreshAgeMinutes: c.refreshAgeMinutes as number,
-  lastUpdated: new Date(BOOT - (c.refreshAgeMinutes as number) * 60_000),
+  fileLastUpdated: c.lastUpdated,
   info: c.info as InfoSection[],
   x: c.x,
   y: c.y,

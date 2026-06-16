@@ -10,25 +10,8 @@ export type InfoSection = { title: I18nText; items: InfoItem[] };
 type InfoProps = {
   title?: ReactNode;
   sections: InfoSection[];
-  lastUpdated: Date;
+  lastUpdated?: string;
 };
-
-const LOCALES: Record<string, string> = {
-  en: "en-US",
-  ja: "ja-JP",
-  zh: "zh-CN",
-};
-
-function formatTimestamp(date: Date, lang: string): string {
-  const locale = LOCALES[lang] ?? lang;
-  return new Intl.DateTimeFormat(locale, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 function resolve(text: I18nText, lang: string): string {
   return text[lang] ?? text.en ?? Object.values(text)[0] ?? "";
@@ -58,8 +41,12 @@ export default function Info({ title, sections, lastUpdated }: InfoProps) {
               </Fragment>
             ))
           )}
-          <dt className={styles.label}>{t("info.lastUpdated")}</dt>
-          <dd className={styles.value}>{formatTimestamp(lastUpdated, lang)}</dd>
+          {lastUpdated && (
+            <>
+              <dt className={styles.label}>{t("info.lastUpdated")}</dt>
+              <dd className={styles.value}>{lastUpdated}</dd>
+            </>
+          )}
         </dl>
       </Modal>
     </>

@@ -6,3 +6,4 @@ dist/
 .claude/
 src/modules/
 board.config.json
+**/last_updated.txt

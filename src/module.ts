@@ -7,6 +7,7 @@ export type ModuleConfig = {
   i: string;
   title: Record<string, string>;
   refreshAgeMinutes: number;
+  lastUpdated?: string;
   info: InfoSection[];
   x: number;
   y: number;
@@ -57,6 +58,21 @@ for (const path in repoConfigs) {
     if (registry[name] && settings.allowMultipleInstances !== undefined) {
       registry[name].config.allowMultipleInstances = settings.allowMultipleInstances;
     }
+  }
+}
+
+// Load last_update.txt files and attach timestamps to each module
+const lastUpdateFiles = import.meta.glob('./modules/*/*/last_updated.txt', {
+  eager: true,
+  query: '?raw',
+  import: 'default',
+}) as Record<string, string>;
+
+for (const [path, content] of Object.entries(lastUpdateFiles)) {
+  const name = path.split('/').at(-2)!;
+  if (registry[name] && typeof content === 'string') {
+    const text = content.trim();
+    if (text) registry[name].config.lastUpdated = text;
   }
 }
 
