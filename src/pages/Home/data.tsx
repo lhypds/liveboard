@@ -12,6 +12,7 @@ export type CardConfig = LayoutItem & {
   content: (config: Record<string, unknown>) => ReactNode;
   refreshAgeMinutes: number;
   fileLastUpdated?: string;
+  hasRefresh?: boolean;
   info: InfoSection[];
   comp?: Record<string, unknown>;
   allowMultipleInstances?: boolean;
@@ -34,4 +35,5 @@ export const CARDS: CardConfig[] = Object.values(modules).map(({ component: Comp
   maxH: c.maxH,
   ...(c.comp ? { comp: { ...c.comp } } : {}),
   ...(c.allowMultipleInstances !== undefined ? { allowMultipleInstances: c.allowMultipleInstances } : {}),
+  ...(c.hasRefresh ? { hasRefresh: true } : {}),
 }));

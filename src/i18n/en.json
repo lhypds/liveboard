@@ -9,6 +9,9 @@
   "export": {
     "tooltip": "Export"
   },
+  "refresh": {
+    "tooltip": "Refresh"
+  },
   "edit": {
     "tooltip": "Edit",
 "invalidJson": "Invalid JSON"

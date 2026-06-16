@@ -8,6 +8,7 @@ export type ModuleConfig = {
   title: Record<string, string>;
   refreshAgeMinutes: number;
   lastUpdated?: string;
+  hasRefresh?: boolean;
   info: InfoSection[];
   x: number;
   y: number;
@@ -74,6 +75,12 @@ for (const [path, content] of Object.entries(lastUpdateFiles)) {
     const text = content.trim();
     if (text) registry[name].config.lastUpdated = text;
   }
+}
+
+const refreshScripts = import.meta.glob('./modules/*/*/refresh.sh', { query: '?raw' });
+for (const p in refreshScripts) {
+  const name = p.split('/').at(-2)!;
+  if (registry[name]) registry[name].config.hasRefresh = true;
 }
 
 console.log(`[registry] loaded ${Object.keys(registry).length} / ${Object.keys(raw).length} modules`);

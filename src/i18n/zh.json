@@ -9,6 +9,9 @@
   "export": {
     "tooltip": "导出"
   },
+  "refresh": {
+    "tooltip": "刷新"
+  },
   "edit": {
     "tooltip": "编辑",
 "invalidJson": "JSON 格式无效"
