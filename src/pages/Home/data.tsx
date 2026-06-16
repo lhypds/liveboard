@@ -3,17 +3,16 @@ import type { LayoutItem } from "react-grid-layout/legacy";
 import modules from "@modules";
 
 export type Lang = "en" | "ja" | "zh";
-type InfoField = Record<Lang, string>;
+type I18n = Record<Lang, string>;
+type InfoItem = { key: I18n; value: I18n };
+export type InfoSection = { title: I18n; items: InfoItem[] };
 
 export type CardConfig = LayoutItem & {
-  title: Record<Lang, string>;
+  title: I18n;
   content: (config: Record<string, unknown>) => ReactNode;
-  info: {
-    dataSource: InfoField;
-    refreshFrequency: InfoField;
-    refreshAgeMinutes: number;
-    lastUpdated: Date;
-  };
+  refreshAgeMinutes: number;
+  lastUpdated: Date;
+  info: InfoSection[];
   comp?: Record<string, unknown>;
   allowMultipleInstances?: boolean;
 };
@@ -22,14 +21,11 @@ const BOOT = Date.now();
 
 export const CARDS: CardConfig[] = Object.values(modules).map(({ component: Comp, config: c }) => ({
   i: c.i,
-  title: c.title as Record<Lang, string>,
+  title: c.title as I18n,
   content: (config: Record<string, unknown>) => <Comp config={config} />,
-  info: {
-    dataSource: c.info.dataSource as InfoField,
-    refreshFrequency: c.info.refreshFrequency as InfoField,
-    refreshAgeMinutes: c.info.refreshAgeMinutes,
-    lastUpdated: new Date(BOOT - c.info.refreshAgeMinutes * 60_000),
-  },
+  refreshAgeMinutes: c.refreshAgeMinutes as number,
+  lastUpdated: new Date(BOOT - (c.refreshAgeMinutes as number) * 60_000),
+  info: c.info as InfoSection[],
   x: c.x,
   y: c.y,
   w: c.w,

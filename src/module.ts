@@ -1,13 +1,13 @@
 import type { ComponentType } from "react";
 
+type InfoItem = { key: Record<string, string>; value: Record<string, string> };
+type InfoSection = { title: Record<string, string>; items: InfoItem[] };
+
 export type ModuleConfig = {
   i: string;
   title: Record<string, string>;
-  info: {
-    dataSource: Record<string, string>;
-    refreshFrequency: Record<string, string>;
-    refreshAgeMinutes: number;
-  };
+  refreshAgeMinutes: number;
+  info: InfoSection[];
   x: number;
   y: number;
   w: number;

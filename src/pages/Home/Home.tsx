@@ -44,11 +44,8 @@ function nextY(layout: Layout): number {
   return layout.reduce((max, it) => Math.max(max, it.y + it.h), 0);
 }
 
-type CfgInfo = {
-  dataSource?: Record<string, string>;
-  refreshFrequency?: Record<string, string>;
-  refreshAgeMinutes?: number;
-};
+type InfoItem = { key: Record<string, string>; value: Record<string, string> };
+type InfoSection = { title: Record<string, string>; items: InfoItem[] };
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -110,11 +107,11 @@ export default function Home() {
     const newLayout = [...layout, { ...toLayoutItem(card), i: instanceId, x: 0, y: nextY(layout) }];
     const defaultConfig: Record<string, unknown> = {
       title: { ...card.title },
-      info: {
-        dataSource: { ...card.info.dataSource },
-        refreshFrequency: { ...card.info.refreshFrequency },
-        refreshAgeMinutes: card.info.refreshAgeMinutes,
-      },
+      refreshAgeMinutes: card.refreshAgeMinutes,
+      info: card.info.map((section) => ({
+        title: { ...section.title },
+        items: section.items.map((item) => ({ key: { ...item.key }, value: { ...item.value } })),
+      })),
       ...(card.comp ? { comp: { ...card.comp } } : {}),
     };
     const nextConfigs = { ...configs, [instanceId]: defaultConfig };
@@ -153,24 +150,21 @@ export default function Home() {
           if (!card) return null;
           const cfg = configs[item.i] ?? {};
           const cfgTitle = cfg.title as Record<string, string> | undefined;
-          const cfgInfo = cfg.info as CfgInfo | undefined;
+          const cfgInfo = cfg.info as InfoSection[] | undefined;
+          const cfgRefreshAge = cfg.refreshAgeMinutes as number | undefined;
 
           const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
-          const displayDataSource = cfgInfo?.dataSource?.[lang] ?? card.info.dataSource[lang];
-          const displayRefreshFrequency = cfgInfo?.refreshFrequency?.[lang] ?? card.info.refreshFrequency[lang];
+          const displaySections = cfgInfo ?? card.info;
           const displayLastUpdated =
-            cfgInfo?.refreshAgeMinutes !== undefined
-              ? new Date(Date.now() - cfgInfo.refreshAgeMinutes * 60_000)
-              : card.info.lastUpdated;
+            cfgRefreshAge !== undefined
+              ? new Date(Date.now() - cfgRefreshAge * 60_000)
+              : card.lastUpdated;
 
           const editConfig: Record<string, unknown> = {
             title: cfgTitle ?? { ...card.title },
-            info: {
-              dataSource: cfgInfo?.dataSource ?? { ...card.info.dataSource },
-              refreshFrequency: cfgInfo?.refreshFrequency ?? { ...card.info.refreshFrequency },
-              refreshAgeMinutes: cfgInfo?.refreshAgeMinutes ?? card.info.refreshAgeMinutes,
-            },
-            ...Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== "title" && k !== "info")),
+            refreshAgeMinutes: cfgRefreshAge ?? card.refreshAgeMinutes,
+            info: cfgInfo ?? card.info,
+            ...Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== "title" && k !== "info" && k !== "refreshAgeMinutes")),
           };
 
           return (
@@ -181,8 +175,7 @@ export default function Home() {
                   <>
                     <Info
                       title={displayTitle}
-                      dataSource={displayDataSource}
-                      refreshFrequency={displayRefreshFrequency}
+                      sections={displaySections}
                       lastUpdated={displayLastUpdated}
                     />
                     <Export />
