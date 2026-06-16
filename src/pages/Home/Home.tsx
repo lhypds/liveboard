@@ -150,7 +150,7 @@ export default function Home() {
           if (!card) return null;
           const cfg = configs[item.i] ?? {};
           const cfgTitle = cfg.title as Record<string, string> | undefined;
-          const cfgInfo = cfg.info as InfoSection[] | undefined;
+          const cfgInfo = Array.isArray(cfg.info) ? (cfg.info as InfoSection[]) : undefined;
           const cfgRefreshAge = cfg.refreshAgeMinutes as number | undefined;
 
           const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
