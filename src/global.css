@@ -18,3 +18,8 @@ body {
 select:focus {
   outline: none;
 }
+
+.cursor-hidden,
+.cursor-hidden * {
+  cursor: none !important;
+}
