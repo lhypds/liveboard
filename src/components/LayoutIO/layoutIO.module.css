@@ -1,0 +1,77 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  width: 22px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid black;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0;
+  user-select: none;
+}
+
+.icon {
+  width: 10px;
+  height: 10px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.trigger:hover {
+  background: black;
+  color: white;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 999;
+  flex-direction: column;
+}
+
+.wrapper:hover .dropdown,
+.wrapper[data-open="true"] .dropdown {
+  display: flex;
+}
+
+.option {
+  min-width: 80px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  border: 1px solid black;
+  border-top: none;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:first-child {
+  border-top: 1px solid black;
+}
+
+.option:hover {
+  background: black;
+  color: white;
+}
+
+.fileInput {
+  display: none;
+}

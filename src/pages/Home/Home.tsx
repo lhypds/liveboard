@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
-import { Add, Edit, Export, Info, LanguageSwitcher } from "@components";
+import { Add, Edit, Export, Info, LanguageSwitcher, LayoutIO } from "@components";
 import { Card } from "@ui";
 import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
@@ -124,12 +124,24 @@ export default function Home() {
     persist(layout.filter((it) => it.i !== id));
   };
 
+  const handleImport = (nextLayout: Layout, nextConfigs: typeof configs) => {
+    const filtered = nextLayout.filter((it) => CARDS_BY_ID.has(moduleId(it.i)));
+    const filteredIds = new Set(filtered.map((it) => it.i));
+    const filteredConfigs = Object.fromEntries(
+      Object.entries(nextConfigs).filter(([id]) => filteredIds.has(id)),
+    );
+    setLayout(filtered);
+    setConfigs(filteredConfigs);
+    saveToStorage(filtered, filteredConfigs);
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
         <h1 className={styles.title}>{t("home.title")}</h1>
         <div className={styles.actions}>
           <Add items={addItems} onAdd={handleAdd} />
+          <LayoutIO layout={layout} configs={configs} onImport={handleImport} />
           <LanguageSwitcher />
         </div>
       </header>
