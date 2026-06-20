@@ -12,7 +12,9 @@ if [ ! -f board.config.json ]; then
   echo "Copied board.config.json.example to board.config.json"
 fi
 
-# modules.config.json
+bash pull.sh
+
+# modules.config.json (after pull so all module dirs exist)
 for example in src/modules/*/modules.config.json.example; do
   target="${example%.example}"
   if [ ! -f "$target" ]; then
@@ -20,9 +22,6 @@ for example in src/modules/*/modules.config.json.example; do
     echo "Copied $example to $target"
   fi
 done
-
-
-bash pull.sh
 
 echo "Installing dependencies..."
 npm install
