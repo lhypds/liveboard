@@ -1,0 +1,6 @@
+{
+  "[markdown]": {
+    "editor.formatOnSave": false
+  },
+  "python.terminal.activateEnvironment": false
+}
