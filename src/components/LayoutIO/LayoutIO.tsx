@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
 import styles from "./layoutIO.module.css";
 
@@ -11,6 +12,7 @@ type LayoutIOProps = {
 };
 
 export default function LayoutIO({ layout, configs, onImport }: LayoutIOProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);

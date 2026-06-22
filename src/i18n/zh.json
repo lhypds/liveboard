@@ -9,6 +9,10 @@
   "export": {
     "tooltip": "导出"
   },
+  "layoutIO": {
+    "export": "导出",
+    "import": "导入"
+  },
   "refresh": {
     "tooltip": "刷新"
   },
