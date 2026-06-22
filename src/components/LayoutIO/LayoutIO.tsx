@@ -81,10 +81,10 @@ export default function LayoutIO({ layout, configs, onImport }: LayoutIOProps) {
       </button>
       <div className={styles.dropdown}>
         <button type="button" className={styles.option} onClick={handleExport}>
-          Export
+          {t("layoutIO.export")}
         </button>
         <button type="button" className={styles.option} onClick={handleImportClick}>
-          Import
+          {t("layoutIO.import")}
         </button>
       </div>
       <input
