@@ -189,7 +189,18 @@ export default function Home() {
                   </>
                 }
               >
-                {card.content(cfg)}
+                {card.content({
+                  ...cfg,
+                  // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
+                  _save: (comp: Record<string, unknown>) => {
+                    setConfigs((prev) => {
+                      const current = prev[item.i] ?? {};
+                      const next = { ...prev, [item.i]: { ...current, comp } };
+                      saveToStorage(layout, next);
+                      return next;
+                    });
+                  },
+                })}
               </Card>
             </div>
           );
