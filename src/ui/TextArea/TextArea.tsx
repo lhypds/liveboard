@@ -1,21 +1,28 @@
 import { useRef, forwardRef } from "react";
 import styles from "./textarea.module.css";
 
-const TextArea = forwardRef(function TextArea({ className, minHeight = 80, ...props }, forwardedRef) {
-  const localRef = useRef(null);
+type TextAreaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement> & {
+  minHeight?: number;
+};
 
-  function setRefs(el) {
-    localRef.current = el;
+const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextArea(
+  { className, minHeight = 80, ...props },
+  forwardedRef,
+) {
+  const localRef = useRef<HTMLTextAreaElement>(null);
+
+  function setRefs(el: HTMLTextAreaElement | null) {
+    (localRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = el;
     if (typeof forwardedRef === "function") forwardedRef(el);
     else if (forwardedRef) forwardedRef.current = el;
   }
 
-  function onMouseDown(e) {
+  function onMouseDown(e: React.MouseEvent) {
     e.preventDefault();
     const startY = e.clientY;
-    const startHeight = localRef.current.offsetHeight;
-    function onMouseMove(e) {
-      localRef.current.style.height = Math.max(minHeight, startHeight + e.clientY - startY) + "px";
+    const startHeight = localRef.current!.offsetHeight;
+    function onMouseMove(e: MouseEvent) {
+      localRef.current!.style.height = Math.max(minHeight, startHeight + e.clientY - startY) + "px";
     }
     function onMouseUp() {
       document.removeEventListener("mousemove", onMouseMove);
