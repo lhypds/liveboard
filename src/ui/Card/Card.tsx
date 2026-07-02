@@ -9,7 +9,7 @@ type Props = {
 
 export default function Card({ title, actions, children }: Props) {
   return (
-    <div className={styles.card}>
+    <div className={styles.card} data-modal-boundary>
       <div className={`${styles.header} card-drag-handle`}>
         <span className={styles.title}>{title}</span>
         {actions && (
