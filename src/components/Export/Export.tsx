@@ -21,14 +21,26 @@ export default function Export({ title }: ExportProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!open) return;
     function handleOutside(e: PointerEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
-    document.addEventListener("pointerdown", handleOutside);
-    return () => document.removeEventListener("pointerdown", handleOutside);
-  }, []);
+    function close() {
+      setOpen(false);
+    }
+    // Capture phase: card action toolbars stop pointerdown propagation, which
+    // would otherwise swallow outside clicks before they reach the document
+    document.addEventListener("pointerdown", handleOutside, true);
+    // Clicks inside iframes (Website cards) never reach this document; the
+    // window losing focus is the only signal we get
+    window.addEventListener("blur", close);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutside, true);
+      window.removeEventListener("blur", close);
+    };
+  }, [open]);
 
   async function exportPng() {
     const card = wrapperRef.current?.closest<HTMLElement>("[data-modal-boundary]");
