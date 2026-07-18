@@ -8,11 +8,13 @@ import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
 import { CARDS, type Lang } from "./data";
 
+// One grid unit = one background dot (20px); the visual gap between cards
+// comes from padding inside each grid item (see home.module.css)
 const CELL = 20;
-const GAP = 20;
-const COLS = 125;
-const GRID_WIDTH = (CELL + GAP) * COLS - GAP;
-const STORAGE_KEY = "home.layout.v4";
+const COLS = 250;
+const GRID_WIDTH = CELL * COLS;
+const STORAGE_KEY = "home.layout.v5";
+const LEGACY_STORAGE_KEY = "home.layout.v4";
 
 type StoredItem = LayoutItem & { config?: Record<string, unknown> };
 
@@ -30,11 +32,26 @@ function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
   return { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic };
 }
 
+// v4 grid units were 2 dots (20px cell + 20px margin); v5 units are 1 dot
+function migrateLegacy(items: StoredItem[]): StoredItem[] {
+  return items.map((it) => {
+    const next = { ...it };
+    for (const k of ["x", "y", "w", "h", "minW", "minH", "maxW", "maxH"] as const) {
+      if (typeof next[k] === "number") next[k] = next[k] * 2;
+    }
+    return next;
+  });
+}
+
 function loadStored(): StoredItem[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return CARDS.map(toLayoutItem);
-    return (JSON.parse(raw) as StoredItem[]).filter((it) => CARDS_BY_ID.has(moduleId(it.i)));
+    if (raw) return (JSON.parse(raw) as StoredItem[]).filter((it) => CARDS_BY_ID.has(moduleId(it.i)));
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy) {
+      return migrateLegacy(JSON.parse(legacy) as StoredItem[]).filter((it) => CARDS_BY_ID.has(moduleId(it.i)));
+    }
+    return CARDS.map(toLayoutItem);
   } catch {
     return CARDS.map(toLayoutItem);
   }
@@ -150,7 +167,7 @@ export default function Home() {
         onLayoutChange={persist}
         cols={COLS}
         rowHeight={CELL}
-        margin={[GAP, GAP]}
+        margin={[0, 0]}
         containerPadding={[0, 0]}
         draggableHandle=".card-drag-handle"
         width={GRID_WIDTH}

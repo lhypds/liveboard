@@ -25,11 +25,26 @@
 
 .content {
   width: 100%;
+  /* Cancel the items' outer half-gap so cards keep the same origin as the header */
+  margin: -10px;
+}
+
+/* Grid margin is 0 so the drag step is one dot (20px); the 20px visual gap
+   between cards comes from this half-gap padding on each item instead */
+.content :global(.react-grid-item) {
+  padding: 10px;
 }
 
 .content :global(.react-grid-placeholder) {
   background: rgba(86, 86, 86, 0.2);
+  background-clip: content-box;
   opacity: 1;
+}
+
+/* Keep the resize handle on the visible card corner, not the padded item corner */
+.content :global(.react-grid-item > .react-resizable-handle) {
+  bottom: 10px;
+  right: 10px;
 }
 
 /* Disable the animation */
