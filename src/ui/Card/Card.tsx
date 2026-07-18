@@ -13,7 +13,7 @@ export default function Card({ title, actions, children }: Props) {
       <div className={`${styles.header} card-drag-handle`}>
         <span className={styles.title}>{title}</span>
         {actions && (
-          <div className={styles.actions} onPointerDown={(e) => e.stopPropagation()}>
+          <div className={styles.actions} data-card-actions onPointerDown={(e) => e.stopPropagation()}>
             {actions}
           </div>
         )}

@@ -201,7 +201,7 @@ export default function Home() {
                   <>
                     {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} />}
                     <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
-                    <Export />
+                    <Export title={displayTitle} />
                     <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />
                   </>
                 }

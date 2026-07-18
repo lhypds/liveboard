@@ -3,6 +3,11 @@
   display: inline-flex;
 }
 
+.wrapper[data-loading="true"] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .dropdown {
   display: none;
   position: absolute;
