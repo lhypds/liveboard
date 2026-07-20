@@ -51,9 +51,9 @@ function loadStored(): StoredItem[] {
     if (legacy) {
       return migrateLegacy(JSON.parse(legacy) as StoredItem[]).filter((it) => CARDS_BY_ID.has(moduleId(it.i)));
     }
-    return CARDS.map(toLayoutItem);
+    return [];
   } catch {
-    return CARDS.map(toLayoutItem);
+    return [];
   }
 }
 
