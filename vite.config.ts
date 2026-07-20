@@ -57,6 +57,12 @@ function refreshApiPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), refreshApiPlugin()],
+  server: {
+    allowedHosts: ["liveboard.gcc3.com"],
+  },
+  preview: {
+    allowedHosts: ["liveboard.gcc3.com"],
+  },
   resolve: {
     alias: {
       "@ui": path.resolve(__dirname, "src/ui"),
