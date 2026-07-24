@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
-import { Add, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh } from "@components";
+import { Add, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh } from "@components";
 import { Card } from "@ui";
 import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
@@ -137,6 +137,17 @@ export default function Home() {
     saveToStorage(newLayout, nextConfigs);
   };
 
+  const handleDuplicate = (id: string) => {
+    const source = layout.find((it) => it.i === id);
+    if (!source) return;
+    const instanceId = `${moduleId(id)}:${Date.now()}`;
+    const newLayout = [...layout, { ...source, i: instanceId, x: 0, y: nextY(layout) }];
+    const nextConfigs = configs[id] ? { ...configs, [instanceId]: structuredClone(configs[id]) } : configs;
+    setLayout(newLayout);
+    setConfigs(nextConfigs);
+    saveToStorage(newLayout, nextConfigs);
+  };
+
   const handleDelete = (id: string) => {
     persist(layout.filter((it) => it.i !== id));
   };
@@ -202,6 +213,7 @@ export default function Home() {
                     {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} />}
                     <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
                     <Export title={displayTitle} />
+                    {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
                     <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />
                   </>
                 }

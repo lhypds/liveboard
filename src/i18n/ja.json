@@ -20,6 +20,9 @@
     "tooltip": "編集",
 "invalidJson": "JSONが無効です"
   },
+  "duplicate": {
+    "tooltip": "複製"
+  },
   "info": {
     "tooltip": "情報",
     "dataSource": "データソース",

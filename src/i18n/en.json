@@ -20,6 +20,9 @@
     "tooltip": "Edit",
 "invalidJson": "Invalid JSON"
   },
+  "duplicate": {
+    "tooltip": "Duplicate"
+  },
   "info": {
     "tooltip": "Info",
     "dataSource": "Data Source",

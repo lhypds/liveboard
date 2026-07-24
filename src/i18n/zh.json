@@ -20,6 +20,9 @@
     "tooltip": "编辑",
 "invalidJson": "JSON 格式无效"
   },
+  "duplicate": {
+    "tooltip": "复制"
+  },
   "info": {
     "tooltip": "信息",
     "dataSource": "数据来源",
