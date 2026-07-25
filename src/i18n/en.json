@@ -28,11 +28,5 @@
     "dataSource": "Data Source",
     "refreshFrequency": "Refresh Frequency",
     "lastUpdated": "Last Updated"
-  },
-  "heatmap": {
-    "searchPlaceholder": "Search address...",
-    "searchButton": "Search",
-    "searchNotFound": "Address not found",
-    "searchError": "Search failed. Please try again."
   }
 }
