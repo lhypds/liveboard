@@ -53,3 +53,16 @@
 .content:global(.react-grid-layout) {
   transition: none;
 }
+
+/* Mobile: single-column stack instead of the free-form canvas. Left/right
+   inset comes from .page's own padding, so it always matches the header. */
+.mobileList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.mobileItem {
+  width: 100%;
+  max-width: 100%;
+}

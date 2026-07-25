@@ -15,6 +15,21 @@ const COLS = 250;
 const GRID_WIDTH = CELL * COLS;
 const STORAGE_KEY = "home.layout.v5";
 const LEGACY_STORAGE_KEY = "home.layout.v4";
+const MOBILE_BREAKPOINT = 720;
+
+function useIsMobile(breakpoint: number): boolean {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(`(max-width: ${breakpoint}px)`).matches);
+
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const handler = () => setIsMobile(mq.matches);
+    handler();
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+
+  return isMobile;
+}
 
 type StoredItem = LayoutItem & { config?: Record<string, unknown> };
 
@@ -68,6 +83,7 @@ export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as Lang;
   const [layout, setLayout] = useState<Layout>(loadStored);
+  const isMobile = useIsMobile(MOBILE_BREAKPOINT);
 
   useEffect(() => {
     document.title = t("home.title");
@@ -161,6 +177,56 @@ export default function Home() {
     saveToStorage(filtered, filteredConfigs);
   };
 
+  const renderCard = (item: LayoutItem) => {
+    const card = CARDS_BY_ID.get(moduleId(item.i));
+    if (!card) return null;
+    const cfg = configs[item.i] ?? {};
+    const cfgTitle = cfg.title as Record<string, string> | undefined;
+    const cfgInfo = Array.isArray(cfg.info) ? (cfg.info as InfoSection[]) : undefined;
+    const cfgRefreshAge = cfg.refreshAgeMinutes as number | undefined;
+
+    const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
+    const displaySections = cfgInfo ?? card.info;
+    const displayLastUpdated = card.fileLastUpdated;
+
+    const editConfig: Record<string, unknown> = {
+      title: cfgTitle ?? { ...card.title },
+      refreshAgeMinutes: cfgRefreshAge ?? card.refreshAgeMinutes,
+      info: cfgInfo ?? card.info,
+      ...Object.fromEntries(
+        Object.entries(cfg).filter(([k]) => k !== "title" && k !== "info" && k !== "refreshAgeMinutes"),
+      ),
+    };
+
+    return (
+      <Card
+        title={displayTitle}
+        actions={
+          <>
+            {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} />}
+            <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
+            <Export title={displayTitle} />
+            {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
+            <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />
+          </>
+        }
+      >
+        {card.content({
+          ...cfg,
+          // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
+          _save: (comp: Record<string, unknown>) => {
+            setConfigs((prev) => {
+              const current = prev[item.i] ?? {};
+              const next = { ...prev, [item.i]: { ...current, comp } };
+              saveToStorage(layout, next);
+              return next;
+            });
+          },
+        })}
+      </Card>
+    );
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -172,69 +238,37 @@ export default function Home() {
         </div>
       </header>
 
-      <GridLayout
-        className={styles.content}
-        layout={layout}
-        onLayoutChange={persist}
-        cols={COLS}
-        rowHeight={CELL}
-        margin={[0, 0]}
-        containerPadding={[0, 0]}
-        draggableHandle=".card-drag-handle"
-        width={GRID_WIDTH}
-      >
-        {layout.map((item) => {
-          const card = CARDS_BY_ID.get(moduleId(item.i));
-          if (!card) return null;
-          const cfg = configs[item.i] ?? {};
-          const cfgTitle = cfg.title as Record<string, string> | undefined;
-          const cfgInfo = Array.isArray(cfg.info) ? (cfg.info as InfoSection[]) : undefined;
-          const cfgRefreshAge = cfg.refreshAgeMinutes as number | undefined;
-
-          const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
-          const displaySections = cfgInfo ?? card.info;
-          const displayLastUpdated = card.fileLastUpdated;
-
-          const editConfig: Record<string, unknown> = {
-            title: cfgTitle ?? { ...card.title },
-            refreshAgeMinutes: cfgRefreshAge ?? card.refreshAgeMinutes,
-            info: cfgInfo ?? card.info,
-            ...Object.fromEntries(
-              Object.entries(cfg).filter(([k]) => k !== "title" && k !== "info" && k !== "refreshAgeMinutes"),
-            ),
-          };
-
-          return (
-            <div key={item.i}>
-              <Card
-                title={displayTitle}
-                actions={
-                  <>
-                    {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} />}
-                    <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
-                    <Export title={displayTitle} />
-                    {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
-                    <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />
-                  </>
-                }
-              >
-                {card.content({
-                  ...cfg,
-                  // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
-                  _save: (comp: Record<string, unknown>) => {
-                    setConfigs((prev) => {
-                      const current = prev[item.i] ?? {};
-                      const next = { ...prev, [item.i]: { ...current, comp } };
-                      saveToStorage(layout, next);
-                      return next;
-                    });
-                  },
-                })}
-              </Card>
-            </div>
-          );
-        })}
-      </GridLayout>
+      {isMobile ? (
+        <div className={styles.mobileList}>
+          {[...layout]
+            .sort((a, b) => a.y - b.y || a.x - b.x)
+            .map((item) => {
+              const content = renderCard(item);
+              if (!content) return null;
+              return (
+                <div key={item.i} className={styles.mobileItem} style={{ height: item.h * CELL }}>
+                  {content}
+                </div>
+              );
+            })}
+        </div>
+      ) : (
+        <GridLayout
+          className={styles.content}
+          layout={layout}
+          onLayoutChange={persist}
+          cols={COLS}
+          rowHeight={CELL}
+          margin={[0, 0]}
+          containerPadding={[0, 0]}
+          draggableHandle=".card-drag-handle"
+          width={GRID_WIDTH}
+        >
+          {layout.map((item) => (
+            <div key={item.i}>{renderCard(item)}</div>
+          ))}
+        </GridLayout>
+      )}
     </div>
   );
 }
