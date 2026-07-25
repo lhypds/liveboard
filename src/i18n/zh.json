@@ -28,5 +28,11 @@
     "dataSource": "数据来源",
     "refreshFrequency": "刷新频率",
     "lastUpdated": "最近更新"
+  },
+  "heatmap": {
+    "searchPlaceholder": "搜索地址...",
+    "searchButton": "搜索",
+    "searchNotFound": "未找到该地址",
+    "searchError": "搜索失败，请重试。"
   }
 }

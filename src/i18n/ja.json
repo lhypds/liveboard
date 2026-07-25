@@ -28,5 +28,11 @@
     "dataSource": "データソース",
     "refreshFrequency": "更新頻度",
     "lastUpdated": "最終更新"
+  },
+  "heatmap": {
+    "searchPlaceholder": "住所を検索...",
+    "searchButton": "検索",
+    "searchNotFound": "住所が見つかりません",
+    "searchError": "検索に失敗しました。もう一度お試しください。"
   }
 }
