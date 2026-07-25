@@ -1,4 +1,5 @@
 import type { ComponentType } from "react";
+import boardConfig from "../board.config.json";
 
 type InfoItem = { key: Record<string, string>; value: Record<string, string> };
 type InfoSection = { title: Record<string, string>; items: InfoItem[] };
@@ -29,9 +30,23 @@ export type ModuleEntry = {
 
 const raw = import.meta.glob("./modules/*/index.ts", { eager: true });
 
+// Order module repos the same way pull.sh does: by componentsGitUrl in board.config.json,
+// not by the alphabetical order import.meta.glob happens to return.
+function repoDirName(url: string): string {
+  const base = url.split("/").filter(Boolean).pop() ?? "";
+  const noGit = base.endsWith(".git") ? base.slice(0, -4) : base;
+  return noGit.startsWith("liveboard-mod-") ? noGit.slice("liveboard-mod-".length) : noGit;
+}
+
+const repoOrder = ((boardConfig as { componentsGitUrl?: string[] }).componentsGitUrl ?? []).map(repoDirName);
+const orderedPaths = [
+  ...repoOrder.map((name) => `./modules/${name}/index.ts`).filter((path) => path in raw),
+  ...Object.keys(raw).filter((path) => !repoOrder.includes(path.split("/")[2])),
+];
+
 const registry: Record<string, ModuleEntry> = {};
 
-for (const path in raw) {
+for (const path of orderedPaths) {
   const mod = raw[path] as Record<string, unknown>;
   const def = mod.default;
 
