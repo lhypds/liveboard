@@ -12,6 +12,7 @@
 
 .textarea:focus {
   border-color: #555;
+  outline: none;
 }
 
 .handle {
