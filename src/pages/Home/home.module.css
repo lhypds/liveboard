@@ -65,4 +65,8 @@
 .mobileItem {
   width: 100%;
   max-width: 100%;
+  max-height: calc(100vh - 10px);
+  /* svh (not dvh): a fixed value, so it won't jitter as mobile browser
+     chrome (address bar) hides/shows while scrolling inside a tall card */
+  max-height: calc(100svh - 10px);
 }
