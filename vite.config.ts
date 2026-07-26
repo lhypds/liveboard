@@ -1,4 +1,4 @@
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -55,21 +55,26 @@ function refreshApiPlugin(): Plugin {
   };
 }
 
-export default defineConfig({
-  plugins: [react(), refreshApiPlugin()],
-  server: {
-    allowedHosts: ["liveboard.gcc3.com"],
-  },
-  preview: {
-    allowedHosts: ["liveboard.gcc3.com"],
-  },
-  resolve: {
-    alias: {
-      "@ui": path.resolve(__dirname, "src/ui"),
-      "@components": path.resolve(__dirname, "src/components"),
-      "@pages": path.resolve(__dirname, "src/pages"),
-      "@utils": path.resolve(__dirname, "src/utils"),
-      "@modules": path.resolve(__dirname, "src/module.ts"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const allowedHosts = env.HOST ? [env.HOST] : [];
+
+  return {
+    plugins: [react(), refreshApiPlugin()],
+    server: {
+      allowedHosts,
     },
-  },
+    preview: {
+      allowedHosts,
+    },
+    resolve: {
+      alias: {
+        "@ui": path.resolve(__dirname, "src/ui"),
+        "@components": path.resolve(__dirname, "src/components"),
+        "@pages": path.resolve(__dirname, "src/pages"),
+        "@utils": path.resolve(__dirname, "src/utils"),
+        "@modules": path.resolve(__dirname, "src/module.ts"),
+      },
+    },
+  };
 });
