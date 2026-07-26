@@ -6,9 +6,9 @@ import ja from "./ja.json";
 import boardConfig from "../../board.config.json";
 
 const TITLE = {
-  en: boardConfig.title?.en || "Liveboard",
-  zh: boardConfig.title?.zh || "Liveboard",
-  ja: boardConfig.title?.ja || "Liveboard",
+  en: boardConfig.title?.en || "liveboard",
+  zh: boardConfig.title?.zh || "liveboard",
+  ja: boardConfig.title?.ja || "liveboard",
 };
 
 const savedLang = localStorage.getItem("lang");

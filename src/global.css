@@ -1,3 +1,9 @@
+@import url(https://cdn.jsdelivr.net/npm/firacode@6.2.0/distr/fira_code.css);
+
+:root {
+  --font-title: "Fira Code VF", monospace;
+}
+
 html {
   background-color: #fafafa;
   background-image: radial-gradient(circle, #d2d2d2 1px, transparent 1px);

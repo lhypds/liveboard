@@ -4,7 +4,7 @@
     "save": "保存"
   },
   "home": {
-    "title": "Liveboard"
+    "title": "liveboard"
   },
   "export": {
     "tooltip": "导出"
@@ -18,7 +18,7 @@
   },
   "edit": {
     "tooltip": "编辑",
-"invalidJson": "JSON 格式无效"
+    "invalidJson": "JSON 格式无效"
   },
   "duplicate": {
     "tooltip": "复制"

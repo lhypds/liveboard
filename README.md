@@ -1,9 +1,9 @@
 
-Liveboard
+liveboard
 =========
 
 
-Liveboard is a web application to display anything on a screen, with data updates.  
+liveboard is a web application to display anything on a screen, with data updates.  
 
 
 Screenshot
