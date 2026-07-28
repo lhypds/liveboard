@@ -10,6 +10,22 @@ if [ -f board.config.json ]; then
 fi
 
 echo "==> Pulling liveboard..."
+
+# `npm install` rewrites package-lock.json whenever a module repo changes its own dependencies,
+# because npm workspaces record module deps in this repo's lockfile. On a deploy clone that
+# regenerated lockfile is not the source of truth, and leaving it modified makes the pull below
+# abort ("Your local changes ... would be overwritten by merge"), taking restart.sh down with it.
+# Only discard it when it is the sole local change, so a machine with real work stays untouched.
+if ! git diff --quiet HEAD -- package-lock.json; then
+  if [ -z "$(git diff --name-only HEAD | grep -v '^package-lock\.json$')" ]; then
+    echo "  Discarding regenerated package-lock.json (npm install rewrites it)..."
+    git checkout HEAD -- package-lock.json
+  else
+    echo "  NOTE: package-lock.json is modified alongside other local changes — leaving it as is."
+    echo "        If the pull below fails, commit or stash your changes first."
+  fi
+fi
+
 git pull
 
 echo ""
