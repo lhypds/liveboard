@@ -9,7 +9,8 @@
     "module": "esnext",
     "types": [
       "vite/client",
-      "google.maps"
+      "google.maps",
+      "geojson"
     ],
     "skipLibCheck": true,
     /* Bundler mode */
