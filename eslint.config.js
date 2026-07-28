@@ -6,7 +6,10 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // Module repos keep python tooling beside their components; a virtualenv's vendored JS
+  // (playwright's driver bundle, ~1k findings) is never app code. Pattern-based, so no module
+  // ever has to be named here.
+  globalIgnores(['dist', '**/.venv/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

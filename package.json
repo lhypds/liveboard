@@ -3,16 +3,19 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "workspaces": [
+    "src/modules/*"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run typecheck && vite build",
+    "typecheck": "tsc -b && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "html-to-image": "^1.11.13",
     "i18next": "^26.2.0",
-    "mapbox-gl": "^3.24.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-grid-layout": "^2.2.3",
@@ -21,8 +24,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/geojson": "^7946.0.16",
-    "@types/google.maps": "^3.65.3",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

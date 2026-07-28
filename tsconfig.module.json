@@ -1,6 +1,12 @@
 {
+  /* Shared TypeScript base for module repos (src/modules/*). Each module extends this from its own
+     tsconfig.json, then owns the two things that used to leak into tsconfig.app.json:
+       - `types`: global type packages the module needs (e.g. geojson, google.maps)
+       - `exclude`: its own non-app code (python .venv dirs, node crawler scripts)
+     Relative paths below resolve against THIS file's directory (the parent repo root), which is why
+     the `paths` aliases keep working from inside a module. `include`/`exclude` do not inherit that
+     way — they resolve against each module's own tsconfig, which is exactly what we want here. */
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "es2023",
     "lib": [
       "ES2023",
@@ -20,7 +26,8 @@
     "jsx": "react-jsx",
     "allowJs": true,
     "resolveJsonModule": true,
-    /* Path aliases */
+    /* Path aliases — must mirror the `resolve.alias` block in vite.config.ts. No baseUrl (removed
+       in TS 7): without it these resolve against this file's directory, i.e. the parent repo root. */
     "paths": {
       "@ui": [
         "./src/ui"
@@ -49,14 +56,5 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
-  },
-  "include": [
-    "src"
-  ],
-  /* Module repos typecheck themselves against tsconfig.module.json (see each module's own
-     tsconfig.json), run from here by `npm run typecheck --workspaces`. Keeping them out of this
-     program is what stops adding a module from editing this file. */
-  "exclude": [
-    "src/modules"
-  ]
+  }
 }
