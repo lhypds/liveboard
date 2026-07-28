@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import styles from "./boardSwitcher.module.css";
+import styles from "./board.module.css";
 
 type BoardSwitcherProps = {
   count: number;
