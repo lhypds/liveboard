@@ -26,6 +26,9 @@ Run
 `setup.sh` pulls the modules, then runs every `src/modules/*/setup.sh`,  
 and each module's `setup.sh` runs every one of its components' `setup.sh`.  
 A failing component or module setup is reported but does not stop the build.  
+Frontend credentials used by only one component are kept in that component's
+`.env`; Vite loads `VITE_` variables from direct component directories when it
+builds the board.
 
 Then, run  
 `npm run dev`  

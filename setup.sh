@@ -39,13 +39,7 @@ ask_env() {
 }
 
 echo ""
-echo "==> Checking .env..."
-# The VITE_ keys are baked into the bundle by `npm run build` below, so they
-# have to be answered before the build, not after it.
-ask_env VITE_MAPBOX_TOKEN \
-  "Mapbox public token — the HeatMap card's basemap. https://account.mapbox.com/access-tokens/"
-ask_env VITE_GOOGLE_MAPS_API_KEY \
-  "Google Maps API key — address search on the HeatMap card. https://console.cloud.google.com/google/maps-apis/credentials"
+echo "==> Checking root .env..."
 ask_env HOST \
   "Public hostname this board is served from, e.g. liveboard.example.jp (leave empty for local development)."
 

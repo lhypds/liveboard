@@ -7,6 +7,47 @@ import { readdirSync, existsSync } from "fs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+/**
+ * Component-owned VITE_ variables live beside the component that consumes
+ * them. Vite only reads the root .env by default, so expose values from each
+ * direct component directory explicitly at build time.
+ */
+function loadComponentEnv(mode: string): Record<string, string> {
+  const modulesDir = path.join(__dirname, "src/modules");
+  if (!existsSync(modulesDir)) return {};
+
+  const values: Record<string, { value: string; componentDir: string }> = {};
+  const envFileNames = [".env", ".env.local", `.env.${mode}`, `.env.${mode}.local`];
+
+  for (const moduleDirent of readdirSync(modulesDir, { withFileTypes: true })) {
+    if (!moduleDirent.isDirectory() || moduleDirent.name.startsWith(".")) continue;
+    const moduleDir = path.join(modulesDir, moduleDirent.name);
+
+    for (const componentDirent of readdirSync(moduleDir, { withFileTypes: true })) {
+      if (!componentDirent.isDirectory() || componentDirent.name.startsWith(".")) continue;
+      const componentDir = path.join(moduleDir, componentDirent.name);
+      if (!envFileNames.some((fileName) => existsSync(path.join(componentDir, fileName)))) continue;
+
+      for (const [key, value] of Object.entries(loadEnv(mode, componentDir, "VITE_"))) {
+        const previous = values[key];
+        if (previous && previous.value !== value) {
+          throw new Error(
+            `${key} is defined with different values in ${previous.componentDir} and ${componentDir}`,
+          );
+        }
+        values[key] = { value, componentDir };
+      }
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(values).map(([key, { value }]) => [
+      `import.meta.env.${key}`,
+      JSON.stringify(value),
+    ]),
+  );
+}
+
 function refreshApiPlugin(): Plugin {
   return {
     name: "refresh-api",
@@ -58,11 +99,16 @@ function refreshApiPlugin(): Plugin {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const allowedHosts = env.HOST ? [env.HOST] : [];
+  const componentEnv = loadComponentEnv(mode);
 
   return {
     plugins: [react(), refreshApiPlugin()],
+    // Root .env is for board/runtime settings. Component VITE_ values are
+    // injected by loadComponentEnv instead of being read from the root.
+    envDir: path.join(__dirname, "src/modules"),
     define: {
       "process.env": {},
+      ...componentEnv,
     },
     server: {
       allowedHosts,
