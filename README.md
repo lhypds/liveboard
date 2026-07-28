@@ -23,6 +23,10 @@ First, fillup the `board.config.json` file.
 Run  
 `./setup.sh`  
 
+`setup.sh` pulls the modules, then runs every `src/modules/*/setup.sh`,  
+and each module's `setup.sh` runs every one of its components' `setup.sh`.  
+A failing component or module setup is reported but does not stop the build.  
+
 Then, run  
 `npm run dev`  
 to start.  
