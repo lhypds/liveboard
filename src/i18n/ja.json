@@ -24,6 +24,11 @@
   "duplicate": {
     "tooltip": "複製"
   },
+  "board": {
+    "label": "Board {{n}}",
+    "add": "ボードを追加",
+    "edit": "ボードを編集"
+  },
   "info": {
     "tooltip": "情報",
     "dataSource": "データソース",

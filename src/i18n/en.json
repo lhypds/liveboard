@@ -24,6 +24,11 @@
   "duplicate": {
     "tooltip": "Duplicate"
   },
+  "board": {
+    "label": "Board {{n}}",
+    "add": "New board",
+    "edit": "Edit board"
+  },
   "info": {
     "tooltip": "Info",
     "dataSource": "Data Source",

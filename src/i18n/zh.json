@@ -24,6 +24,11 @@
   "duplicate": {
     "tooltip": "复制"
   },
+  "board": {
+    "label": "Board {{n}}",
+    "add": "新建 board",
+    "edit": "编辑 board"
+  },
   "info": {
     "tooltip": "信息",
     "dataSource": "数据来源",

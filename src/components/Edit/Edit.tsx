@@ -6,28 +6,40 @@ import styles from "./edit.module.css";
 
 const TextArea = TextAreaBase as React.ComponentType<TextareaHTMLAttributes<HTMLTextAreaElement> & { minHeight?: number }>;
 
-type EditProps = {
-  config?: Record<string, unknown>;
-  onSave?: (config: Record<string, unknown>) => void;
+// T is the shape of the edited JSON: a card's config object, or a board's item array
+type EditProps<T> = {
+  config?: T;
+  onSave?: (config: T) => void;
   onDelete?: () => void;
+  /** Modal heading; defaults to the shared "Edit" label */
+  title?: string;
+  /** Cards label their pencil on hover; the board's pencil stands alone in the header and doesn't */
+  hideTooltip?: boolean;
 };
 
-export default function Edit({ config = {}, onSave, onDelete }: EditProps) {
+export default function Edit<T = Record<string, unknown>>({
+  config,
+  onSave,
+  onDelete,
+  title,
+  hideTooltip,
+}: EditProps<T>) {
   const { t } = useTranslation();
+  const label = title ?? t("edit.tooltip");
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (open) {
-      setDraft(JSON.stringify(config, null, 2));
+      setDraft(JSON.stringify(config ?? {}, null, 2));
       setError("");
     }
   }, [open]);
 
   function handleSave() {
     try {
-      const parsed = JSON.parse(draft) as Record<string, unknown>;
+      const parsed = JSON.parse(draft) as T;
       onSave?.(parsed);
       setOpen(false);
     } catch {
@@ -42,13 +54,13 @@ export default function Edit({ config = {}, onSave, onDelete }: EditProps) {
 
   return (
     <>
-      <ActionButton tooltip={t("edit.tooltip")} onClick={() => setOpen(true)}>
+      <ActionButton tooltip={hideTooltip ? undefined : label} onClick={() => setOpen(true)}>
         <svg viewBox="0 0 24 24">
           <path d="M12 20h9" />
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
         </svg>
       </ActionButton>
-      <Modal isOpen={open} onClose={() => setOpen(false)} title={t("edit.tooltip")}>
+      <Modal isOpen={open} onClose={() => setOpen(false)} title={label}>
         <TextArea
           className={styles.json}
           value={draft}
