@@ -42,4 +42,8 @@
   overflow: auto;
   font-size: 13px;
   color: #0f172a;
+  /* Clear the grid resize handle's hit region in the corner — otherwise a
+     focused/selected element there can win the corner's cursor hit-test */
+  padding-bottom: 12px;
+  padding-right: 10px;
 }

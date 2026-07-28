@@ -63,6 +63,23 @@
   gap: 20px;
 }
 
+.contentWrapper {
+  position: relative;
+  height: 100%;
+}
+
+.refreshOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  color: #6b7280;
+}
+
 .mobileItem {
   width: 100%;
   max-width: 100%;

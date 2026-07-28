@@ -14,7 +14,8 @@
     "import": "Import"
   },
   "refresh": {
-    "tooltip": "Refresh"
+    "tooltip": "Refresh",
+    "loading": "Loading…"
   },
   "edit": {
     "tooltip": "Edit",

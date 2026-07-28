@@ -14,7 +14,8 @@
     "import": "导入"
   },
   "refresh": {
-    "tooltip": "刷新"
+    "tooltip": "刷新",
+    "loading": "正在加载数据…"
   },
   "edit": {
     "tooltip": "编辑",

@@ -84,6 +84,7 @@ export default function Home() {
   const lang = i18n.language as Lang;
   const [layout, setLayout] = useState<Layout>(loadStored);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
+  const [refreshingIds, setRefreshingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     document.title = t("home.title");
@@ -198,12 +199,22 @@ export default function Home() {
       ),
     };
 
+    const isRefreshing = refreshingIds.has(item.i);
+    const setRefreshing = (loading: boolean) => {
+      setRefreshingIds((prev) => {
+        const next = new Set(prev);
+        if (loading) next.add(item.i);
+        else next.delete(item.i);
+        return next;
+      });
+    };
+
     return (
       <Card
         title={displayTitle}
         actions={
           <>
-            {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} />}
+            {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} onLoadingChange={setRefreshing} />}
             <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
             <Export title={displayTitle} />
             {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
@@ -211,18 +222,21 @@ export default function Home() {
           </>
         }
       >
-        {card.content({
-          ...cfg,
-          // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
-          _save: (comp: Record<string, unknown>) => {
-            setConfigs((prev) => {
-              const current = prev[item.i] ?? {};
-              const next = { ...prev, [item.i]: { ...current, comp } };
-              saveToStorage(layout, next);
-              return next;
-            });
-          },
-        })}
+        <div className={styles.contentWrapper}>
+          {isRefreshing && <div className={styles.refreshOverlay}>{t("refresh.loading")}</div>}
+          {card.content({
+            ...cfg,
+            // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
+            _save: (comp: Record<string, unknown>) => {
+              setConfigs((prev) => {
+                const current = prev[item.i] ?? {};
+                const next = { ...prev, [item.i]: { ...current, comp } };
+                saveToStorage(layout, next);
+                return next;
+              });
+            },
+          })}
+        </div>
       </Card>
     );
   };

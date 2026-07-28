@@ -61,6 +61,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), refreshApiPlugin()],
+    define: {
+      "process.env": {},
+    },
     server: {
       allowedHosts,
     },
