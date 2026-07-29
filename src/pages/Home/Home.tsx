@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
-import { Add, BoardSwitcher, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh } from "@components";
+import { Add, BoardSwitcher, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh, Reset } from "@components";
 import { Card } from "@ui";
 import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
@@ -110,6 +110,10 @@ export default function Home() {
   const [store, setStore] = useState<Store>(loadStore);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
   const [refreshingIds, setRefreshingIds] = useState<Set<string>>(new Set());
+  // A card that can put itself back to a clean state registers how (see `_setReset` below),
+  // and gets a Reset button in its header. Keyed by instance id, so one Chat card resetting
+  // leaves the others alone.
+  const [resetHandlers, setResetHandlers] = useState<Record<string, () => void | Promise<void>>>({});
 
   useEffect(() => {
     document.title = t("home.title");
@@ -274,6 +278,7 @@ export default function Home() {
         actions={
           <>
             {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} onLoadingChange={setRefreshing} />}
+            {resetHandlers[item.i] && <Reset onReset={resetHandlers[item.i]} />}
             <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
             <Export title={displayTitle} />
             {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
@@ -285,6 +290,20 @@ export default function Home() {
           {isRefreshing && <div className={styles.refreshOverlay}>{t("refresh.loading")}</div>}
           {card.content({
             ...cfg,
+            // This card instance's id, for components that need to tell themselves apart
+            // from a copy of the same card (e.g. Chat owns one CLI process per card)
+            _id: item.i,
+            // Cards that can start over say how here, which is also what puts a Reset button
+            // in their header. Pass null to take it away again.
+            _setReset: (fn: (() => void | Promise<void>) | null) => {
+              setResetHandlers((prev) => {
+                if (fn) return prev[item.i] === fn ? prev : { ...prev, [item.i]: fn };
+                if (!(item.i in prev)) return prev;
+                const next = { ...prev };
+                delete next[item.i];
+                return next;
+              });
+            },
             // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
             _save: (comp: Record<string, unknown>) => {
               updateItems((prev) =>

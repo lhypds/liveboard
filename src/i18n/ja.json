@@ -17,6 +17,9 @@
     "tooltip": "更新",
     "loading": "データを読み込み中…"
   },
+  "reset": {
+    "tooltip": "リセット"
+  },
   "edit": {
     "tooltip": "編集",
     "invalidJson": "JSONが無効です"

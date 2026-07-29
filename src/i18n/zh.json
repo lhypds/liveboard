@@ -17,6 +17,9 @@
     "tooltip": "刷新",
     "loading": "正在加载数据…"
   },
+  "reset": {
+    "tooltip": "重置"
+  },
   "edit": {
     "tooltip": "编辑",
     "invalidJson": "JSON 格式无效"

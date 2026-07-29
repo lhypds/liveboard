@@ -17,6 +17,9 @@
     "tooltip": "Refresh",
     "loading": "Loading…"
   },
+  "reset": {
+    "tooltip": "Reset"
+  },
   "edit": {
     "tooltip": "Edit",
     "invalidJson": "Invalid JSON"
