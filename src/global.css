@@ -5,6 +5,10 @@
 }
 
 html {
+  /* Keep Safari from inflating text on its own; see utils/preventInputZoom.ts
+     for the focus-zoom half of this. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   background-color: #fafafa;
   background-image: radial-gradient(circle, #d2d2d2 1px, transparent 1px);
   background-size: 20px 20px;
