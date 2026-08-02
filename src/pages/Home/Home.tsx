@@ -17,7 +17,7 @@ const STORAGE_KEY = "home.boards.v1";
 // Pre-multi-board keys, each holding a single layout
 const LEGACY_STORAGE_KEY = "home.layout.v5";
 const LEGACY_V4_STORAGE_KEY = "home.layout.v4";
-const MOBILE_BREAKPOINT = 720;
+const MOBILE_BREAKPOINT = 540;
 
 function useIsMobile(breakpoint: number): boolean {
   const [isMobile, setIsMobile] = useState(() => window.matchMedia(`(max-width: ${breakpoint}px)`).matches);
