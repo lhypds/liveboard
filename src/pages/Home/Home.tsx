@@ -368,6 +368,8 @@ export default function Home() {
                 prev.map((it) => (it.i === item.i ? { ...it, config: { ...(it.config ?? {}), comp } } : it)),
               );
             },
+            // Lets a card remove itself (e.g. Calculator's Mac-style close box), same as the Edit modal's delete
+            _delete: () => handleDelete(item.i),
           })}
         </div>
       </Card>
