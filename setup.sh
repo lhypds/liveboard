@@ -79,7 +79,8 @@ done
 
 echo ""
 echo "Installing dependencies..."
-npm install
+# --include=dev: see restart.sh — the build needs the devDependencies even on a production host.
+npm install --include=dev
 
 echo "Building..."
 npm run build
