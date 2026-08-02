@@ -111,6 +111,9 @@ export default defineConfig(({ mode }) => {
       "process.env": {},
       ...componentEnv,
     },
+    optimizeDeps: {
+      include: ["pyodide"],
+    },
     server: {
       allowedHosts,
     },
