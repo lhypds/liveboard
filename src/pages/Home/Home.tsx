@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
-import { Add, BoardSwitcher, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh, Reset } from "@components";
+import { Add, BoardSwitcher, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh, Reset, User } from "@components";
 import { Card } from "@ui";
 import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
@@ -279,6 +279,17 @@ export default function Home() {
     }));
   };
 
+  // A layout downloaded from the user's server folder replaces the whole
+  // store (all boards), running through the same sanitizing as loadStore
+  const handleRestore = (data: unknown): boolean => {
+    if (!data || typeof data !== "object") return false;
+    const parsed = data as { boards?: unknown[]; active?: number };
+    if (!Array.isArray(parsed.boards) || !parsed.boards.length) return false;
+    const boards = parsed.boards.map(toBoard);
+    setStore({ boards, active: Math.min(Math.max(parsed.active ?? 0, 0), boards.length - 1) });
+    return true;
+  };
+
   // Removing the last board leaves an empty one behind — there is always a board
   const handleDeleteBoard = () => {
     setStore((prev) => {
@@ -386,6 +397,7 @@ export default function Home() {
             onDelete={handleDeleteBoard}
           />
           <LayoutIO layout={layout} configs={configs} onImport={handleImport} />
+          <User store={store} onRestore={handleRestore} />
           <LanguageSwitcher />
         </div>
       </header>

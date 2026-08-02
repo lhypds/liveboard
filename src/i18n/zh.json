@@ -1,7 +1,8 @@
 {
   "button": {
     "delete": "删除",
-    "save": "保存"
+    "save": "保存",
+    "cancel": "取消"
   },
   "home": {
     "title": "liveboard"
@@ -37,5 +38,22 @@
     "dataSource": "数据来源",
     "refreshFrequency": "刷新频率",
     "lastUpdated": "最近更新"
+  },
+  "user": {
+    "login": "登录",
+    "logout": "退出登录",
+    "profile": "用户",
+    "username": "当前用户:",
+    "usernamePlaceholder": "用户名",
+    "usernameInvalid": "请使用 1–32 位中日韩文字、小写字母、数字、- 或 _",
+    "loginFailed": "登录失败。",
+    "download": "下载布局并覆盖本地",
+    "upload": "上传布局并覆盖远程",
+    "downloadDone": "已应用服务器上的布局。",
+    "uploadDone": "布局已上传。",
+    "noLayout": "服务器上还没有布局。",
+    "error": "请求失败。",
+    "confirmCreate": "用户 “{{name}}” 不存在，是否创建？",
+    "create": "创建"
   }
 }

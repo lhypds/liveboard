@@ -8,3 +8,4 @@ export { default as Info } from "./Info";
 export { default as Add } from "./Add";
 export { default as LayoutIO } from "./LayoutIO";
 export { default as BoardSwitcher } from "./BoardSwitcher";
+export { default as User } from "./User";

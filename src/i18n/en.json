@@ -1,7 +1,8 @@
 {
   "button": {
     "delete": "Delete",
-    "save": "Save"
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "home": {
     "title": "liveboard"
@@ -37,5 +38,22 @@
     "dataSource": "Data Source",
     "refreshFrequency": "Refresh Frequency",
     "lastUpdated": "Last Updated"
+  },
+  "user": {
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "User",
+    "username": "Current user:",
+    "usernamePlaceholder": "Username",
+    "usernameInvalid": "Use 1–32 CJK characters, lowercase letters, numbers, - or _",
+    "loginFailed": "Login failed.",
+    "confirmCreate": "User \"{{name}}\" doesn't exist yet. Create it?",
+    "create": "Create",
+    "download": "Download layout and overwrite local",
+    "upload": "Upload layout and overwrite remote",
+    "downloadDone": "Server layout applied.",
+    "uploadDone": "Layout uploaded.",
+    "noLayout": "No layout on the server yet.",
+    "error": "Request failed."
   }
 }

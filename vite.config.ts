@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { execFile } from "child_process";
 import { readdirSync, existsSync } from "fs";
+import userApiPlugin from "./server/users";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -102,7 +103,7 @@ export default defineConfig(({ mode }) => {
   const componentEnv = loadComponentEnv(mode);
 
   return {
-    plugins: [react(), refreshApiPlugin()],
+    plugins: [react(), refreshApiPlugin(), userApiPlugin()],
     // Root .env is for board/runtime settings. Component VITE_ values are
     // injected by loadComponentEnv instead of being read from the root.
     envDir: path.join(__dirname, "src/modules"),
@@ -120,6 +121,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         "@ui": path.resolve(__dirname, "src/ui"),
         "@components": path.resolve(__dirname, "src/components"),
+        "@contexts": path.resolve(__dirname, "src/contexts"),
         "@pages": path.resolve(__dirname, "src/pages"),
         "@utils": path.resolve(__dirname, "src/utils"),
         "@modules": path.resolve(__dirname, "src/module.ts"),

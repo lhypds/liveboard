@@ -3,6 +3,7 @@ node_modules/
 .DS_Store
 .env
 dist/
+data/users/
 .claude/
 src/modules/
 board.config.json

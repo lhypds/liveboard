@@ -4,7 +4,7 @@ import "ress";
 import "./global.css";
 import "./i18n/index.js";
 import App from "./App.tsx";
-import { preventInputZoom } from "./utils/preventInputZoom.ts";
+import { preventInputZoom } from "./utils/zoom.ts";
 
 preventInputZoom();
 

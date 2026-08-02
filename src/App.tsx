@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Home from "@pages/Home";
 import { Toast } from "@ui";
+import UserProvider from "@contexts/UserContext";
 
 const IDLE_TIMEOUT = 7_000;
 
@@ -31,9 +32,9 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <UserProvider>
       <Home />
       <Toast />
-    </>
+    </UserProvider>
   );
 }
