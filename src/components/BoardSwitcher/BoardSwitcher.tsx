@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import styles from "./board.module.css";
 
 type BoardSwitcherProps = {
-  count: number;
+  /** Display name per board, already resolved to the current language */
+  names: string[];
   active: number;
   onSelect: (index: number) => void;
   onAdd: () => void;
 };
 
-export default function BoardSwitcher({ count, active, onSelect, onAdd }: BoardSwitcherProps) {
+export default function BoardSwitcher({ names, active, onSelect, onAdd }: BoardSwitcherProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -40,14 +41,15 @@ export default function BoardSwitcher({ count, active, onSelect, onAdd }: BoardS
         {active + 1}
       </button>
       <div className={styles.dropdown}>
-        {Array.from({ length: count }, (_, i) => (
+        {names.map((name, i) => (
           <button
             key={i}
             type="button"
             className={`${styles.option} ${i === active ? styles.active : ""}`}
             onClick={() => pick(i)}
           >
-            {t("board.label", { n: i + 1 })}
+            <span className={styles.serial}>[{i + 1}]</span>
+            <span className={styles.name}>{name}</span>
           </button>
         ))}
         <button type="button" className={styles.option} onClick={add} title={t("board.add")}>

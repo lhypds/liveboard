@@ -35,8 +35,14 @@ function useIsMobile(breakpoint: number): boolean {
 
 type StoredItem = LayoutItem & { config?: Record<string, unknown> };
 
-// A board is one layout: the grid items plus their per-card config
-type Store = { boards: StoredItem[][]; active: number };
+// A board is one layout: the grid items plus their per-card config, and an
+// optional per-language display name (defaults to "Board N" when absent)
+type Board = { name?: Record<string, string>; items: StoredItem[] };
+type Store = { boards: Board[]; active: number };
+// What the board-settings modal edits; older exports/drafts may still be a bare item array
+type BoardConfig = { name?: Record<string, string>; items?: StoredItem[] } | StoredItem[];
+
+const LANGS: Lang[] = ["en", "zh", "ja"];
 
 const LAYOUT_FIELDS = new Set(["x", "y", "w", "h", "minW", "minH", "maxW", "maxH"]);
 
@@ -77,24 +83,47 @@ function sanitize(items: unknown): StoredItem[] {
   return (items as StoredItem[]).filter((it) => it && typeof it.i === "string" && CARDS_BY_ID.has(moduleId(it.i)));
 }
 
+// Keeps only non-empty strings for known languages; undefined means "use the default label"
+function sanitizeName(name: unknown): Record<string, string> | undefined {
+  if (!name || typeof name !== "object" || Array.isArray(name)) return undefined;
+  const out: Record<string, string> = {};
+  for (const lng of LANGS) {
+    const v = (name as Record<string, unknown>)[lng];
+    if (typeof v === "string" && v.trim()) out[lng] = v.trim();
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+// Accepts both stored shapes: a bare item array (pre-name era) or { name, items }
+function toBoard(entry: unknown): Board {
+  if (Array.isArray(entry)) return { items: sanitize(entry) };
+  if (entry && typeof entry === "object") {
+    const b = entry as { name?: unknown; items?: unknown };
+    const name = sanitizeName(b.name);
+    return { ...(name ? { name } : {}), items: sanitize(b.items) };
+  }
+  return { items: [] };
+}
+
 function loadStore(): Store {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
-      const parsed = JSON.parse(raw) as Store;
-      const boards = Array.isArray(parsed?.boards) ? parsed.boards.map(sanitize) : [];
+      const parsed = JSON.parse(raw) as { boards?: unknown[]; active?: number };
+      const boards = Array.isArray(parsed?.boards) ? parsed.boards.map(toBoard) : [];
       if (boards.length) {
         return { boards, active: Math.min(Math.max(parsed.active ?? 0, 0), boards.length - 1) };
       }
     }
     const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) return { boards: [sanitize(JSON.parse(legacy))], active: 0 };
+    if (legacy) return { boards: [{ items: sanitize(JSON.parse(legacy)) }], active: 0 };
     const legacyV4 = localStorage.getItem(LEGACY_V4_STORAGE_KEY);
-    if (legacyV4) return { boards: [sanitize(migrateLegacy(JSON.parse(legacyV4) as StoredItem[]))], active: 0 };
+    if (legacyV4)
+      return { boards: [{ items: sanitize(migrateLegacy(JSON.parse(legacyV4) as StoredItem[])) }], active: 0 };
   } catch {
     // fall through to a single empty board
   }
-  return { boards: [[]], active: 0 };
+  return { boards: [{ items: [] }], active: 0 };
 }
 
 function nextY(layout: Layout): number {
@@ -123,7 +152,7 @@ export default function Home() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   }, [store]);
 
-  const items = useMemo(() => store.boards[store.active] ?? [], [store]);
+  const items = useMemo(() => store.boards[store.active]?.items ?? [], [store]);
 
   // The active board split into what the grid needs and what the cards need
   const layout = useMemo<Layout>(() => toGridLayout(items), [items]);
@@ -140,7 +169,7 @@ export default function Home() {
   const updateItems = (next: (prev: StoredItem[]) => StoredItem[]) => {
     setStore((prev) => ({
       ...prev,
-      boards: prev.boards.map((board, idx) => (idx === prev.active ? next(board) : board)),
+      boards: prev.boards.map((board, idx) => (idx === prev.active ? { ...board, items: next(board.items) } : board)),
     }));
   };
 
@@ -167,6 +196,16 @@ export default function Home() {
 
     updateItems((prev) => prev.map((it) => (it.i === id ? { ...it, ...layoutPatch, config: moduleConfig } : it)));
   };
+
+  // Custom name in the current language, else any language it was set in, else "Board N"
+  const boardNames = store.boards.map(
+    (board, i) =>
+      board.name?.[lang] ?? LANGS.map((l) => board.name?.[l]).find(Boolean) ?? t("board.label", { n: i + 1 }),
+  );
+
+  // The settings modal pre-fills the default label in every language so the shape is visible
+  const defaultBoardName = (n: number): Record<string, string> =>
+    Object.fromEntries(LANGS.map((l) => [l, i18n.getFixedT(l)("board.label", { n })]));
 
   const activeModuleIds = new Set(layout.map((it) => moduleId(it.i)));
   const addItems = CARDS.map((c) => ({
@@ -225,18 +264,26 @@ export default function Home() {
   };
 
   const handleAddBoard = () => {
-    setStore((prev) => ({ boards: [...prev.boards, []], active: prev.boards.length }));
+    setStore((prev) => ({ boards: [...prev.boards, { items: [] }], active: prev.boards.length }));
   };
 
-  const handleSaveBoard = (next: StoredItem[]) => {
-    updateItems(() => sanitize(next));
+  const handleSaveBoard = (next: BoardConfig) => {
+    setStore((prev) => ({
+      ...prev,
+      boards: prev.boards.map((board, idx) => {
+        if (idx !== prev.active) return board;
+        if (Array.isArray(next)) return { ...board, items: sanitize(next) };
+        const name = sanitizeName(next.name);
+        return { ...(name ? { name } : {}), items: sanitize(next.items) };
+      }),
+    }));
   };
 
   // Removing the last board leaves an empty one behind — there is always a board
   const handleDeleteBoard = () => {
     setStore((prev) => {
       const boards = prev.boards.filter((_, idx) => idx !== prev.active);
-      if (!boards.length) return { boards: [[]], active: 0 };
+      if (!boards.length) return { boards: [{ items: [] }], active: 0 };
       return { boards, active: Math.min(prev.active, boards.length - 1) };
     });
   };
@@ -323,13 +370,16 @@ export default function Home() {
         <div className={styles.actions}>
           <Add items={addItems} onAdd={handleAdd} />
           <BoardSwitcher
-            count={store.boards.length}
+            names={boardNames}
             active={store.active}
             onSelect={handleSelectBoard}
             onAdd={handleAddBoard}
           />
-          <Edit<StoredItem[]>
-            config={items}
+          <Edit<BoardConfig>
+            config={{
+              name: store.boards[store.active]?.name ?? defaultBoardName(store.active + 1),
+              items,
+            }}
             title={t("board.edit")}
             hideTooltip
             onSave={handleSaveBoard}

@@ -43,6 +43,7 @@
 
 .option {
   min-width: 100px;
+  max-width: 220px;
   height: 22px;
   display: inline-flex;
   align-items: center;
@@ -56,6 +57,16 @@
   line-height: 1;
   white-space: nowrap;
   text-align: left;
+}
+
+.serial {
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .option:hover,

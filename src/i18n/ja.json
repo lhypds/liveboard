@@ -28,7 +28,7 @@
     "tooltip": "複製"
   },
   "board": {
-    "label": "Board {{n}}",
+    "label": "ボード{{n}}",
     "add": "ボードを追加",
     "edit": "ボードを編集"
   },

@@ -28,7 +28,7 @@
     "tooltip": "复制"
   },
   "board": {
-    "label": "Board {{n}}",
+    "label": "画板{{n}}",
     "add": "新建 board",
     "edit": "编辑 board"
   },
