@@ -114,6 +114,9 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: {
       include: ["pyodide"],
     },
+    worker: {
+      format: "es",
+    },
     server: {
       allowedHosts,
     },
