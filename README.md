@@ -9,8 +9,6 @@ liveboard is a web application to display anything on a screen, with data update
 Screenshot
 ----------
 
-Sample module: Tokyo Heat Map  
-
 <img width="1080" height="779" alt="image" src="https://github.com/user-attachments/assets/e140eb80-c2f0-405e-942a-a07af5475562" />
 
 
