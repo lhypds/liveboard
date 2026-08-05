@@ -11,7 +11,7 @@ Screenshot
 
 Sample module: Tokyo Heat Map  
 
-<img width="2262" height="1370" alt="0bbf9906-399b-4de3-b6be-1e30f48012f7" src="https://github.com/user-attachments/assets/584c30c7-0490-4f44-a798-376e16b1b2f5" />
+<img width="1080" height="779" alt="image" src="https://github.com/user-attachments/assets/e140eb80-c2f0-405e-942a-a07af5475562" />
 
 
 Setup & Run
