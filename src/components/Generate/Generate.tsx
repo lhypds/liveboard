@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActionButton, Modal, TextArea } from "@ui";
-import { generateEdit, NoScCredentialError } from "@utils/sc";
+import { ActionButton, Modal, showToast, TextArea } from "@ui";
+import { generateEdit, getScAccount, NoScCredentialError } from "@utils/sc";
 import styles from "./generate.module.css";
 
 /**
@@ -45,15 +45,15 @@ type GenerateProps = {
    * model knows what this content is before it reads the instruction
    */
   prompt?: string;
-  /** Modal heading; defaults to the shared "Generate" label */
-  title?: string;
   /** Replaces the card's text — called repeatedly as the answer streams in */
   onGenerated: (next: string) => void;
   /** What to show over the card's content while it works; "" clears it */
-  onStatus?: (status: string, isError?: boolean) => void;
+  onStatus?: (status: string, isWarning?: boolean) => void;
+  /** True for the whole run — the wait for the first words, and the writing after */
+  onBusy?: (busy: boolean) => void;
 };
 
-export default function Generate({ content, prompt, title, onGenerated, onStatus }: GenerateProps) {
+export default function Generate({ content, prompt, onGenerated, onStatus, onBusy }: GenerateProps) {
   const { t } = useTranslation();
   const label = t("generate.tooltip");
   const [open, setOpen] = useState(false);
@@ -72,10 +72,23 @@ export default function Generate({ content, prompt, title, onGenerated, onStatus
     [],
   );
 
-  function fail(message: string) {
+  function warn(message: string) {
     onStatus?.(message, true);
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     errorTimerRef.current = setTimeout(() => onStatus?.(""), ERROR_HOLD_MS);
+  }
+
+  /**
+   * Nothing here works without a simple-ai login, so say so on the way in rather
+   * than letting the instruction be typed and fail on send. A toast, not a status
+   * over the card: the fix is in the user menu, not on the card.
+   */
+  function handleOpen() {
+    if (!getScAccount().token) {
+      showToast(t("generate.noCredential"));
+      return;
+    }
+    setOpen(true);
   }
 
   async function handleGenerate() {
@@ -86,6 +99,7 @@ export default function Generate({ content, prompt, title, onGenerated, onStatus
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true);
+    onBusy?.(true);
     // The note sits behind this modal, so get out of its way before the text
     // starts landing in it. From here on, progress is shown over the card
     setOpen(false);
@@ -121,7 +135,7 @@ export default function Generate({ content, prompt, title, onGenerated, onStatus
       });
       if (controller.signal.aborted) return;
       if (!next.trim()) {
-        fail(t("generate.emptyResult"));
+        warn(t("generate.emptyResult"));
         return;
       }
       onStatus?.("");
@@ -129,17 +143,23 @@ export default function Generate({ content, prompt, title, onGenerated, onStatus
       onGenerated(next);
     } catch (err) {
       if (controller.signal.aborted) return;
-      if (err instanceof NoScCredentialError) fail(t("generate.noCredential"));
-      else fail(err instanceof Error && err.message ? err.message : t("generate.failed"));
+      // Only reachable if the account was cleared after the modal opened; same
+      // message, same place as the check above
+      if (err instanceof NoScCredentialError) showToast(t("generate.noCredential"));
+      else warn(err instanceof Error && err.message ? err.message : t("generate.failed"));
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
+      onBusy?.(false);
+      // Aborting means the card was unmounted mid-run; don't let its status be
+      // waiting there if the same card comes back (a board switched away and back)
+      if (controller.signal.aborted) onStatus?.("");
     }
   }
 
   return (
     <>
-      <ActionButton tooltip={label} onClick={() => setOpen(true)}>
+      <ActionButton tooltip={label} onClick={handleOpen}>
         {/* Brain, after the one on the q project's generate button. Two lobes and a
             midline rather than q's five paths: card icons render at 10px with a
             stroke 2 units wide, at which q's outline closes into a solid blob */}
@@ -149,7 +169,9 @@ export default function Generate({ content, prompt, title, onGenerated, onStatus
           <path d="M12 4.5v15" />
         </svg>
       </ActionButton>
-      <Modal isOpen={open} onClose={() => setOpen(false)} title={title ?? label}>
+      {/* The heading names what goes in the box — the prompt — rather than the
+          card it came from, which is already on screen behind the modal */}
+      <Modal isOpen={open} onClose={() => setOpen(false)} title={t("generate.title")}>
         <TextArea
           className={styles.instruction}
           value={instruction}

@@ -147,7 +147,9 @@ export default function Home() {
   const [resetHandlers, setResetHandlers] = useState<Record<string, () => void | Promise<void>>>({});
   // What a card is saying over its own content while it generates — the wait before
   // the first words arrive, or why nothing did. Keyed by instance id
-  const [genStatus, setGenStatus] = useState<Record<string, { text: string; error?: boolean }>>({});
+  const [genStatus, setGenStatus] = useState<Record<string, { text: string; warning?: boolean }>>({});
+  // Which cards are mid-generation, from the click through to the last word
+  const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     document.title = t("home.title");
@@ -381,11 +383,10 @@ export default function Home() {
                 config — the standing description of what its `content` is */}
             {card.comp && "prompt" in card.comp && (
               <Generate
-                title={displayTitle}
                 content={compText(cfgComp, "content")}
                 prompt={compText(cfgComp, "prompt") || compText(card.comp, "prompt")}
                 onGenerated={(next) => saveContent(item.i, next)}
-                onStatus={(text, error) =>
+                onStatus={(text, warning) =>
                   setGenStatus((prev) => {
                     if (!text) {
                       if (!(item.i in prev)) return prev;
@@ -393,7 +394,16 @@ export default function Home() {
                       delete next[item.i];
                       return next;
                     }
-                    return { ...prev, [item.i]: { text, error } };
+                    return { ...prev, [item.i]: { text, warning } };
+                  })
+                }
+                onBusy={(busy) =>
+                  setGeneratingIds((prev) => {
+                    if (prev.has(item.i) === busy) return prev;
+                    const next = new Set(prev);
+                    if (busy) next.add(item.i);
+                    else next.delete(item.i);
+                    return next;
                   })
                 }
               />
@@ -404,11 +414,11 @@ export default function Home() {
           </>
         }
       >
-        <div className={styles.contentWrapper}>
+        <div className={styles.contentWrapper} data-generating={generatingIds.has(item.i) ? "" : undefined}>
           {isRefreshing && <div className={styles.statusOverlay}>{t("refresh.loading")}</div>}
           {genStatus[item.i] && (
             <div
-              className={`${styles.statusOverlay}${genStatus[item.i].error ? ` ${styles.statusOverlayError}` : ""}`}
+              className={`${styles.statusOverlay}${genStatus[item.i].warning ? ` ${styles.statusOverlayWarning}` : ""}`}
             >
               {genStatus[item.i].text}
             </div>

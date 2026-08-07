@@ -69,11 +69,25 @@
   height: 100%;
 }
 
+/* While a card is generating — from the wait for the first words through to the
+   last — the box the text is landing in outlines in black, so it is clear which
+   card is being written into */
+.contentWrapper[data-generating] :is(textarea, input) {
+  border-color: #000;
+}
+
 /* What a card says over its own content while it is busy — refreshing, or waiting
    on the first words of a generated rewrite */
 .statusOverlay {
   position: absolute;
-  inset: 0;
+  /* Sits inside the content's own 1px border rather than over it: veiling the
+     border washes it out, and the black one a generating card wears would barely
+     read. The right and bottom reach 9px past this wrapper because Card's .body
+     pads those two edges and a module that fills its card — Note — grows 10px
+     back into that padding, putting its border out there; 10px out less the 1px
+     border lands the veil exactly inside it. A module that doesn't grow just has
+     some of its own white padding veiled, which looks like nothing at all. */
+  inset: 1px -9px -9px 1px;
   z-index: 1;
   display: flex;
   align-items: center;
@@ -85,8 +99,10 @@
   color: #6b7280;
 }
 
-.statusOverlayError {
-  color: #dc2626;
+/* Warnings are stated in black rather than red — this board says everything else
+   in black too, and a card that couldn't be rewritten is not an alarm */
+.statusOverlayWarning {
+  color: #000;
 }
 
 /* Never taller than the screen minus the board header (20px — .title's
