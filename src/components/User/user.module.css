@@ -43,10 +43,87 @@
   word-break: break-all;
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: black;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input {
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border: 1px solid black;
+  background: #ffffff;
+  color: #0f172a;
+  /* Inputs don't inherit the body font, which makes them read larger than they are */
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+/* Same value a disabled .scButton renders: the #0f172a text at 0.55 opacity */
+.input::placeholder {
+  color: rgba(15, 23, 42, 0.55);
+}
+
+/* Masks the password without an input[type="password"], which is the only thing
+   Chrome and Safari offer to save into the password manager. Supported by every
+   WebKit/Blink browser and by Firefox 128+; older Firefox shows the text. */
+.masked {
+  -webkit-text-security: disc;
+}
+
+/* Sits directly under the password box, so it stays left-aligned with it.
+   max-content grid + 1fr columns: both buttons take the wider label's width,
+   whatever the locale, without stretching across the modal */
+.scButtons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  width: max-content;
+}
+
+.scButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid black;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 6px 16px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.scButton:hover {
+  background: black;
+  color: white;
+}
+
+.scButton:disabled {
+  opacity: 0.55;
 }
 
 .actionButton {
@@ -84,7 +161,7 @@
 }
 
 .logoutButton {
-  align-self: flex-start;
+  align-self: flex-end;
   display: inline-flex;
   align-items: center;
   justify-content: center;

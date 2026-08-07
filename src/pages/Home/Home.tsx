@@ -14,10 +14,7 @@ import { CARDS, type Lang } from "./data";
 const CELL = 20;
 const COLS = 250;
 const GRID_WIDTH = CELL * COLS;
-const STORAGE_KEY = "home.boards.v1";
-// Pre-multi-board keys, each holding a single layout
-const LEGACY_STORAGE_KEY = "home.layout.v5";
-const LEGACY_V4_STORAGE_KEY = "home.layout.v4";
+const STORAGE_KEY = "liveboard:layout";
 const MOBILE_BREAKPOINT = 540;
 
 function useIsMobile(breakpoint: number): boolean {
@@ -57,17 +54,6 @@ function moduleId(instanceId: string): string {
 function toLayoutItem(card: (typeof CARDS)[number]): LayoutItem {
   const { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic } = card;
   return { i, x, y, w, h, minW, minH, maxW, maxH, static: isStatic };
-}
-
-// v4 grid units were 2 dots (20px cell + 20px margin); v5 units are 1 dot
-function migrateLegacy(items: StoredItem[]): StoredItem[] {
-  return items.map((it) => {
-    const next = { ...it };
-    for (const k of ["x", "y", "w", "h", "minW", "minH", "maxW", "maxH"] as const) {
-      if (typeof next[k] === "number") next[k] = next[k] * 2;
-    }
-    return next;
-  });
 }
 
 function toGridLayout(items: StoredItem[]): Layout {
@@ -116,11 +102,6 @@ function loadStore(): Store {
         return { boards, active: Math.min(Math.max(parsed.active ?? 0, 0), boards.length - 1) };
       }
     }
-    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-    if (legacy) return { boards: [{ items: sanitize(JSON.parse(legacy)) }], active: 0 };
-    const legacyV4 = localStorage.getItem(LEGACY_V4_STORAGE_KEY);
-    if (legacyV4)
-      return { boards: [{ items: sanitize(migrateLegacy(JSON.parse(legacyV4) as StoredItem[])) }], active: 0 };
   } catch {
     // fall through to a single empty board
   }

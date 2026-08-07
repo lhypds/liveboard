@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { execFile } from "child_process";
 import { readdirSync, existsSync } from "fs";
 import userApiPlugin from "./server/users";
+import scApiPlugin from "./server/sc";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,21 +33,14 @@ function loadComponentEnv(mode: string): Record<string, string> {
       for (const [key, value] of Object.entries(loadEnv(mode, componentDir, "VITE_"))) {
         const previous = values[key];
         if (previous && previous.value !== value) {
-          throw new Error(
-            `${key} is defined with different values in ${previous.componentDir} and ${componentDir}`,
-          );
+          throw new Error(`${key} is defined with different values in ${previous.componentDir} and ${componentDir}`);
         }
         values[key] = { value, componentDir };
       }
     }
   }
 
-  return Object.fromEntries(
-    Object.entries(values).map(([key, { value }]) => [
-      `import.meta.env.${key}`,
-      JSON.stringify(value),
-    ]),
-  );
+  return Object.fromEntries(Object.entries(values).map(([key, { value }]) => [`import.meta.env.${key}`, JSON.stringify(value)]));
 }
 
 function refreshApiPlugin(): Plugin {
@@ -71,9 +65,14 @@ function refreshApiPlugin(): Plugin {
             .filter((d) => d.isDirectory() && !d.name.startsWith("."))
             .map((d) => d.name)) {
             const candidate = path.join(modulesDir, repo, moduleName, "refresh.sh");
-            if (existsSync(candidate)) { scriptPath = candidate; break; }
+            if (existsSync(candidate)) {
+              scriptPath = candidate;
+              break;
+            }
           }
-        } catch { /* modulesDir missing */ }
+        } catch {
+          /* modulesDir missing */
+        }
         if (!scriptPath) {
           res.writeHead(404, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ error: "refresh.sh not found" }));
@@ -81,9 +80,7 @@ function refreshApiPlugin(): Plugin {
         }
         try {
           await new Promise<void>((resolve, reject) =>
-            execFile("bash", [scriptPath!], { cwd: path.dirname(scriptPath!) }, (err) =>
-              err ? reject(err) : resolve()
-            )
+            execFile("bash", [scriptPath!], { cwd: path.dirname(scriptPath!) }, (err) => (err ? reject(err) : resolve())),
           );
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ ok: true }));
@@ -103,7 +100,7 @@ export default defineConfig(({ mode }) => {
   const componentEnv = loadComponentEnv(mode);
 
   return {
-    plugins: [react(), refreshApiPlugin(), userApiPlugin()],
+    plugins: [react(), refreshApiPlugin(), userApiPlugin(), scApiPlugin(env.SC_BASE_URL)],
     // Root .env is for board/runtime settings. Component VITE_ values are
     // injected by loadComponentEnv instead of being read from the root.
     envDir: path.join(__dirname, "src/modules"),
