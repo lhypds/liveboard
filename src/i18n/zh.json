@@ -37,7 +37,6 @@
     "tooltip": "生成",
     "title": "编写提示词",
     "action": "生成",
-    "placeholder": "希望怎样写？",
     "working": "生成中…",
     "noCredential": "请先在用户菜单里设置 SC 账号。",
     "emptyResult": "模型没有返回内容。",

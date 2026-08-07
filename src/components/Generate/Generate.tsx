@@ -201,7 +201,6 @@ export default function Generate({ content, prompt, onGenerated, onCommit, onSta
         <TextArea
           className={styles.instruction}
           value={instruction}
-          placeholder={t("generate.placeholder")}
           disabled={loading}
           autoFocus
           minHeight={120}

@@ -37,7 +37,6 @@
     "tooltip": "Generate",
     "title": "Write prompt",
     "action": "Generate",
-    "placeholder": "How should this be written?",
     "working": "Generating…",
     "noCredential": "Add an SC account in the user menu first.",
     "emptyResult": "The model returned nothing.",

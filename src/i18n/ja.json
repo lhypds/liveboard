@@ -37,7 +37,6 @@
     "tooltip": "生成",
     "title": "プロンプトを書く",
     "action": "生成",
-    "placeholder": "どのように書きますか？",
     "working": "生成中…",
     "noCredential": "先にユーザーメニューで SC アカウントを設定してください。",
     "emptyResult": "モデルからの応答が空でした。",
