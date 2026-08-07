@@ -35,7 +35,7 @@
   },
   "generate": {
     "tooltip": "生成",
-    "title": "提示词",
+    "title": "编写提示词",
     "action": "生成",
     "placeholder": "希望怎样写？",
     "working": "生成中…",

@@ -38,8 +38,12 @@ function overlay(partial: string, original: string): string {
 }
 
 type GenerateProps = {
-  /** The card's current text; what gets rewritten */
-  content: string;
+  /**
+   * The card's current text; what gets rewritten. A card whose text isn't one fixed
+   * field — Code, showing the source of whichever language is selected — passes a
+   * function instead, which is read when the run starts rather than at render
+   */
+  content: string | (() => string);
   /**
    * The card's `prompt` config: a standing description of the scenario, so the
    * model knows what this content is before it reads the instruction
@@ -107,11 +111,15 @@ export default function Generate({ content, prompt, onGenerated, onStatus, onBus
     if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
     onStatus?.(t("generate.working"));
 
+    // Read once, here: the rest of the run overlays its answer onto this text, so
+    // it has to be the same text from the first chunk to the last
+    const original = typeof content === "function" ? content() : content;
+
     let streamed = false;
     let lastWrite = 0;
     try {
       const next = await generateEdit({
-        content,
+        content: original,
         instruct: prompt,
         prompt: edit,
         // Until the first words land there is nothing to watch, so the card
@@ -129,7 +137,7 @@ export default function Generate({ content, prompt, onGenerated, onStatus, onBus
           if (now - lastWrite < STREAM_INTERVAL_MS) return;
           lastWrite = now;
           // The final write below trims whatever of the original is left over
-          onGenerated(overlay(partial, content));
+          onGenerated(overlay(partial, original));
         },
         signal: controller.signal,
       });

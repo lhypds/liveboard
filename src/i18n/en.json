@@ -35,7 +35,7 @@
   },
   "generate": {
     "tooltip": "Generate",
-    "title": "Prompt",
+    "title": "Write prompt",
     "action": "Generate",
     "placeholder": "How should this be written?",
     "working": "Generating…",

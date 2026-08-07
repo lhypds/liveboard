@@ -35,7 +35,7 @@
   },
   "generate": {
     "tooltip": "生成",
-    "title": "プロンプト",
+    "title": "プロンプトを書く",
     "action": "生成",
     "placeholder": "どのように書きますか？",
     "working": "生成中…",

@@ -135,6 +135,17 @@ function compText(comp: Record<string, unknown> | undefined, key: string): strin
   return typeof value === "string" ? value : "";
 }
 
+// What a card hands the board when its text isn't the one `comp.content` field the
+// header's Generate button rewrites by default — Code's is the source of whichever
+// language it happens to be showing, which only the card itself can say. `content`
+// is a function so the run reads the text as it is when it starts, not as it was
+// when the card registered.
+type GenerateTarget = {
+  content: () => string;
+  prompt: string;
+  onGenerated: (next: string) => void;
+};
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as Lang;
@@ -150,6 +161,9 @@ export default function Home() {
   const [genStatus, setGenStatus] = useState<Record<string, { text: string; warning?: boolean }>>({});
   // Which cards are mid-generation, from the click through to the last word
   const [generatingIds, setGeneratingIds] = useState<Set<string>>(new Set());
+  // Cards that named their own Generate target (see `_setGenerate` below) rather than
+  // taking the default one. Keyed by instance id
+  const [generateTargets, setGenerateTargets] = useState<Record<string, GenerateTarget>>({});
 
   useEffect(() => {
     document.title = t("home.title");
@@ -356,6 +370,20 @@ export default function Home() {
       ),
     };
 
+    // A module opts into AI rewriting either by declaring a `prompt` in its comp
+    // config — the standing description of what its `content` field is — or, when
+    // its text isn't that one field, by registering a target of its own
+    const registered = generateTargets[item.i];
+    const generate =
+      registered ??
+      (card.comp && "prompt" in card.comp
+        ? {
+            content: compText(cfgComp, "content"),
+            prompt: compText(cfgComp, "prompt") || compText(card.comp, "prompt"),
+            onGenerated: (next: string) => saveContent(item.i, next),
+          }
+        : null);
+
     const isRefreshing = refreshingIds.has(item.i);
     const setRefreshing = (loading: boolean) => {
       setRefreshingIds((prev) => {
@@ -379,13 +407,11 @@ export default function Home() {
               createdAt={displayCreatedAt}
               updatedAt={displayUpdatedAt}
             />
-            {/* A module opts into AI rewriting by declaring a `prompt` in its comp
-                config — the standing description of what its `content` is */}
-            {card.comp && "prompt" in card.comp && (
+            {generate && (
               <Generate
-                content={compText(cfgComp, "content")}
-                prompt={compText(cfgComp, "prompt") || compText(card.comp, "prompt")}
-                onGenerated={(next) => saveContent(item.i, next)}
+                content={generate.content}
+                prompt={generate.prompt}
+                onGenerated={generate.onGenerated}
                 onStatus={(text, warning) =>
                   setGenStatus((prev) => {
                     if (!text) {
@@ -433,6 +459,19 @@ export default function Home() {
             _setReset: (fn: (() => void | Promise<void>) | null) => {
               setResetHandlers((prev) => {
                 if (fn) return prev[item.i] === fn ? prev : { ...prev, [item.i]: fn };
+                if (!(item.i in prev)) return prev;
+                const next = { ...prev };
+                delete next[item.i];
+                return next;
+              });
+            },
+            // Cards whose text isn't the `comp.content` field say what Generate should
+            // rewrite here (e.g. Code, whose text is the source of the language it is
+            // showing), which is also what puts a Generate button in their header.
+            // Pass null to take it away again.
+            _setGenerate: (target: GenerateTarget | null) => {
+              setGenerateTargets((prev) => {
+                if (target) return prev[item.i] === target ? prev : { ...prev, [item.i]: target };
                 if (!(item.i in prev)) return prev;
                 const next = { ...prev };
                 delete next[item.i];
