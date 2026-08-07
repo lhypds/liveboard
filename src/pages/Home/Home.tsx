@@ -4,6 +4,7 @@ import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
 import { Add, BoardSwitcher, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh, Reset, User } from "@components";
 import { Card } from "@ui";
+import { formatTimestamp } from "@utils/time";
 import "react-grid-layout/css/styles.css";
 import styles from "./home.module.css";
 import { CARDS, type Lang } from "./data";
@@ -306,10 +307,14 @@ export default function Home() {
     const cfgTitle = cfg.title as Record<string, string> | undefined;
     const cfgInfo = Array.isArray(cfg.info) ? (cfg.info as InfoSection[]) : undefined;
     const cfgRefreshAge = cfg.refreshAgeMinutes as number | undefined;
+    const cfgComp = cfg.comp as Record<string, unknown> | undefined;
 
     const displayTitle = cfgTitle?.[lang] ?? card.title[lang];
     const displaySections = cfgInfo ?? card.info;
-    const displayLastUpdated = card.fileLastUpdated;
+    const displayCreatedAt = formatTimestamp(cfgComp?.createdAt, lang);
+    // One "updated" line: when this card instance was last edited, or failing that
+    // when the module itself was last updated (its last_updated.txt)
+    const displayUpdatedAt = formatTimestamp(cfgComp?.updatedAt, lang) ?? card.fileLastUpdated;
 
     const editConfig: Record<string, unknown> = {
       title: cfgTitle ?? { ...card.title },
@@ -337,7 +342,12 @@ export default function Home() {
           <>
             {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} onLoadingChange={setRefreshing} />}
             {resetHandlers[item.i] && <Reset onReset={resetHandlers[item.i]} />}
-            <Info title={displayTitle} sections={displaySections} lastUpdated={displayLastUpdated} />
+            <Info
+              title={displayTitle}
+              sections={displaySections}
+              createdAt={displayCreatedAt}
+              updatedAt={displayUpdatedAt}
+            />
             <Export title={displayTitle} />
             {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
             <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />

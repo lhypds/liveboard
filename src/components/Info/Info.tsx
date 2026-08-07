@@ -10,14 +10,15 @@ export type InfoSection = { title: I18nText; items: InfoItem[] };
 type InfoProps = {
   title?: ReactNode;
   sections: InfoSection[];
-  lastUpdated?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 function resolve(text: I18nText, lang: string): string {
   return text[lang] ?? text.en ?? Object.values(text)[0] ?? "";
 }
 
-export default function Info({ title, sections, lastUpdated }: InfoProps) {
+export default function Info({ title, sections, createdAt, updatedAt }: InfoProps) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const lang = i18n.language;
@@ -41,10 +42,16 @@ export default function Info({ title, sections, lastUpdated }: InfoProps) {
               </Fragment>
             ))
           )}
-          {lastUpdated && (
+          {createdAt && (
             <>
-              <dt className={styles.label}>{t("info.lastUpdated")}</dt>
-              <dd className={styles.value}>{lastUpdated}</dd>
+              <dt className={styles.label}>{t("info.createdAt")}</dt>
+              <dd className={styles.value}>{createdAt}</dd>
+            </>
+          )}
+          {updatedAt && (
+            <>
+              <dt className={styles.label}>{t("info.updatedAt")}</dt>
+              <dd className={styles.value}>{updatedAt}</dd>
             </>
           )}
         </dl>

@@ -37,7 +37,8 @@
     "tooltip": "情報",
     "dataSource": "データソース",
     "refreshFrequency": "更新頻度",
-    "lastUpdated": "最終更新"
+    "createdAt": "作成日時",
+    "updatedAt": "更新日時"
   },
   "user": {
     "login": "ログイン",

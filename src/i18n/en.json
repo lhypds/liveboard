@@ -37,7 +37,8 @@
     "tooltip": "Info",
     "dataSource": "Data Source",
     "refreshFrequency": "Refresh Frequency",
-    "lastUpdated": "Last Updated"
+    "createdAt": "Created",
+    "updatedAt": "Updated"
   },
   "user": {
     "login": "Login",
