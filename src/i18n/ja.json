@@ -33,6 +33,15 @@
     "add": "ボードを追加",
     "edit": "ボードを編集"
   },
+  "generate": {
+    "tooltip": "生成",
+    "action": "生成",
+    "placeholder": "どのように書きますか？",
+    "working": "生成中…",
+    "noCredential": "先にユーザーメニューで SC アカウントを設定してください。",
+    "emptyResult": "モデルからの応答が空でした。",
+    "failed": "生成に失敗しました。"
+  },
   "info": {
     "tooltip": "情報",
     "dataSource": "データソース",

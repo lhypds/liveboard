@@ -1,0 +1,59 @@
+.instruction {
+  /* Same face the note itself is written in, so the instruction reads as part of it */
+  font-family: var(--font-title);
+  font-size: 12px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  height: 120px;
+}
+
+.instruction:focus {
+  outline: none;
+  border-color: #ccc;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* One fixed width for both, so the pair stays even whatever the label says —
+   "Generate" and "Cancel", or 生成 and キャンセル */
+.generateButton,
+.cancelButton {
+  box-sizing: border-box;
+  width: 96px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid black;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.generateButton {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.generateButton:hover:not(:disabled) {
+  background: #1e293b;
+}
+
+.cancelButton {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: black;
+  color: white;
+}
+
+.generateButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

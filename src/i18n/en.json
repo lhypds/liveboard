@@ -33,6 +33,15 @@
     "add": "New board",
     "edit": "Edit board"
   },
+  "generate": {
+    "tooltip": "Generate",
+    "action": "Generate",
+    "placeholder": "How should this be written?",
+    "working": "Generating…",
+    "noCredential": "Add an SC account in the user menu first.",
+    "emptyResult": "The model returned nothing.",
+    "failed": "Generation failed."
+  },
   "info": {
     "tooltip": "Info",
     "dataSource": "Data Source",

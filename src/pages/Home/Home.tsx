@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
-import { Add, BoardSwitcher, Duplicate, Edit, Export, Info, LanguageSwitcher, LayoutIO, Refresh, Reset, User } from "@components";
+import { Add, BoardSwitcher, Duplicate, Edit, Export, Generate, Info, LanguageSwitcher, LayoutIO, Refresh, Reset, User } from "@components";
 import { Card } from "@ui";
 import { formatTimestamp } from "@utils/time";
 import "react-grid-layout/css/styles.css";
@@ -64,10 +64,24 @@ function toGridLayout(items: StoredItem[]): Layout {
   });
 }
 
+// Modules grow comp fields over time — Note's `prompt` is one. A card stored before
+// the field existed gets it filled in from the module's defaults, so it shows up in
+// the card's Edit modal to be tuned rather than only existing as a hidden fallback.
+function withCompDefaults(item: StoredItem): StoredItem {
+  const defaults = CARDS_BY_ID.get(moduleId(item.i))?.comp;
+  if (!defaults) return item;
+  const comp = (item.config?.comp ?? {}) as Record<string, unknown>;
+  const missing = Object.entries(defaults).filter(([key]) => !(key in comp));
+  if (!missing.length) return item;
+  return { ...item, config: { ...item.config, comp: { ...comp, ...Object.fromEntries(missing) } } };
+}
+
 // Drops anything that isn't a grid item of a module this build still ships
 function sanitize(items: unknown): StoredItem[] {
   if (!Array.isArray(items)) return [];
-  return (items as StoredItem[]).filter((it) => it && typeof it.i === "string" && CARDS_BY_ID.has(moduleId(it.i)));
+  return (items as StoredItem[])
+    .filter((it) => it && typeof it.i === "string" && CARDS_BY_ID.has(moduleId(it.i)))
+    .map(withCompDefaults);
 }
 
 // Keeps only non-empty strings for known languages; undefined means "use the default label"
@@ -115,6 +129,12 @@ function nextY(layout: Layout): number {
 type InfoItem = { key: Record<string, string>; value: Record<string, string> };
 type InfoSection = { title: Record<string, string>; items: InfoItem[] };
 
+// comp config is free-form per module, so anything read out of it has to be checked
+function compText(comp: Record<string, unknown> | undefined, key: string): string {
+  const value = comp?.[key];
+  return typeof value === "string" ? value : "";
+}
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as Lang;
@@ -125,6 +145,9 @@ export default function Home() {
   // and gets a Reset button in its header. Keyed by instance id, so one Chat card resetting
   // leaves the others alone.
   const [resetHandlers, setResetHandlers] = useState<Record<string, () => void | Promise<void>>>({});
+  // What a card is saying over its own content while it generates — the wait before
+  // the first words arrive, or why nothing did. Keyed by instance id
+  const [genStatus, setGenStatus] = useState<Record<string, { text: string; error?: boolean }>>({});
 
   useEffect(() => {
     document.title = t("home.title");
@@ -166,6 +189,31 @@ export default function Home() {
       const prevConfigs = Object.fromEntries(prev.filter((it) => it.config).map((it) => [it.i, it.config!]));
       return toStored(next, prevConfigs);
     });
+  };
+
+  // A card writing its own state back — Note's text as it is typed, or a Generate
+  // rewrite — only ever touches the `comp` half of its config
+  const saveComp = (id: string, comp: Record<string, unknown>) => {
+    updateItems((prev) => prev.map((it) => (it.i === id ? { ...it, config: { ...(it.config ?? {}), comp } } : it)));
+  };
+
+  // Generated text lands here many times a second while it streams, so the comp it
+  // builds on is read from the item being updated rather than from the render that
+  // started the stream — which would be stale by the second chunk
+  const saveContent = (id: string, content: string) => {
+    updateItems((prev) =>
+      prev.map((it) => {
+        if (it.i !== id) return it;
+        const comp = (it.config?.comp ?? {}) as Record<string, unknown>;
+        return {
+          ...it,
+          config: {
+            ...it.config,
+            comp: { ...comp, content, createdAt: comp.createdAt ?? Date.now(), updatedAt: Date.now() },
+          },
+        };
+      }),
+    );
   };
 
   const handleSaveConfig = (id: string, saved: Record<string, unknown>) => {
@@ -329,6 +377,27 @@ export default function Home() {
               createdAt={displayCreatedAt}
               updatedAt={displayUpdatedAt}
             />
+            {/* A module opts into AI rewriting by declaring a `prompt` in its comp
+                config — the standing description of what its `content` is */}
+            {card.comp && "prompt" in card.comp && (
+              <Generate
+                title={displayTitle}
+                content={compText(cfgComp, "content")}
+                prompt={compText(cfgComp, "prompt") || compText(card.comp, "prompt")}
+                onGenerated={(next) => saveContent(item.i, next)}
+                onStatus={(text, error) =>
+                  setGenStatus((prev) => {
+                    if (!text) {
+                      if (!(item.i in prev)) return prev;
+                      const next = { ...prev };
+                      delete next[item.i];
+                      return next;
+                    }
+                    return { ...prev, [item.i]: { text, error } };
+                  })
+                }
+              />
+            )}
             <Export title={displayTitle} />
             {card.allowMultipleInstances !== false && <Duplicate id={item.i} onDuplicate={handleDuplicate} />}
             <Edit config={editConfig} onSave={(c) => handleSaveConfig(item.i, c)} onDelete={() => handleDelete(item.i)} />
@@ -336,7 +405,14 @@ export default function Home() {
         }
       >
         <div className={styles.contentWrapper}>
-          {isRefreshing && <div className={styles.refreshOverlay}>{t("refresh.loading")}</div>}
+          {isRefreshing && <div className={styles.statusOverlay}>{t("refresh.loading")}</div>}
+          {genStatus[item.i] && (
+            <div
+              className={`${styles.statusOverlay}${genStatus[item.i].error ? ` ${styles.statusOverlayError}` : ""}`}
+            >
+              {genStatus[item.i].text}
+            </div>
+          )}
           {card.content({
             ...cfg,
             // This card instance's id, for components that need to tell themselves apart
@@ -354,11 +430,7 @@ export default function Home() {
               });
             },
             // Allows components to persist their comp config directly (e.g. Note auto-saves content on change)
-            _save: (comp: Record<string, unknown>) => {
-              updateItems((prev) =>
-                prev.map((it) => (it.i === item.i ? { ...it, config: { ...(it.config ?? {}), comp } } : it)),
-              );
-            },
+            _save: (comp: Record<string, unknown>) => saveComp(item.i, comp),
             // Lets a card remove itself (e.g. Calculator's Mac-style close box), same as the Edit modal's delete
             _delete: () => handleDelete(item.i),
           })}

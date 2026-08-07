@@ -69,16 +69,24 @@
   height: 100%;
 }
 
-.refreshOverlay {
+/* What a card says over its own content while it is busy — refreshing, or waiting
+   on the first words of a generated rewrite */
+.statusOverlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 12px;
+  text-align: center;
   background: rgba(255, 255, 255, 0.85);
   font-size: 13px;
   color: #6b7280;
+}
+
+.statusOverlayError {
+  color: #dc2626;
 }
 
 /* Never taller than the screen minus the board header (20px — .title's
