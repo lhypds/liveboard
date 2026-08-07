@@ -311,6 +311,17 @@ export default function Home() {
     lastGeneratedRef.current = id;
   };
 
+  // A card that has gone — deleted, imported over, restored from the server — leaves
+  // its rewrites behind. Dropping them here rather than at each of those places keeps
+  // it to one rule: history for cards that are still on a board.
+  useEffect(() => {
+    const live = new Set(store.boards.flatMap((board) => board.items.map((it) => it.i)));
+    for (const id of Object.keys(genHistoryRef.current)) {
+      if (!live.has(id)) delete genHistoryRef.current[id];
+    }
+    if (lastGeneratedRef.current && !live.has(lastGeneratedRef.current)) lastGeneratedRef.current = null;
+  }, [store]);
+
   // Ctrl+Z (Cmd+Z) puts back what a generated rewrite replaced, Ctrl+Shift+Z brings
   // the rewrite back again — on the card the focus is in, or failing that on the
   // last card generated.
@@ -405,8 +416,6 @@ export default function Home() {
   };
 
   const handleDelete = (id: string) => {
-    delete genHistoryRef.current[id];
-    if (lastGeneratedRef.current === id) lastGeneratedRef.current = null;
     updateItems((prev) => prev.filter((it) => it.i !== id));
   };
 
