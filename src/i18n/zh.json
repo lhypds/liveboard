@@ -29,7 +29,7 @@
     "tooltip": "复制"
   },
   "board": {
-    "label": "画板{{n}}",
+    "label": "看板{{n}}",
     "add": "新建 board",
     "edit": "编辑 board"
   },
@@ -60,6 +60,8 @@
     "loginFailed": "登录失败。",
     "layoutSection": "布局",
     "scAccountSection": "SC 账号",
+    "scHelp": "关于 SC 账号",
+    "scHelpText": "供看板的 AI 功能使用 — Chat 卡片、卡片正文的生成与改写，以及其他用到 AI 的卡片。登录地址:",
     "scUsername": "用户名",
     "scPassword": "密码",
     "scGetCredential": "获取凭证",

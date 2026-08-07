@@ -6,6 +6,14 @@
      Relative paths below resolve against THIS file's directory (the parent repo root), which is why
      the `paths` aliases keep working from inside a module. `include`/`exclude` do not inherit that
      way — they resolve against each module's own tsconfig, which is exactly what we want here. */
+  /* The board's ambient declarations, which a module never includes on its own (its `include` is
+     its own directory) but needs as soon as it imports through an alias: `@utils/sc` reaches a
+     file that reads a build-time global, and without this the module's typecheck alone fails on
+     it. `files` from a base config survives a child that only declares `include`, and both lists
+     apply. */
+  "files": [
+    "./src/vite-env.d.ts"
+  ],
   "compilerOptions": {
     "target": "es2023",
     "lib": [

@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import { execFile } from "child_process";
 import { readdirSync, existsSync } from "fs";
 import userApiPlugin from "./server/users";
-import scApiPlugin from "./server/sc";
+import scApiPlugin, { resolveBaseUrl } from "./server/sc";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -106,6 +106,10 @@ export default defineConfig(({ mode }) => {
     envDir: path.join(__dirname, "src/modules"),
     define: {
       "process.env": {},
+      // The board only talks to simple-ai through its own server, so this is not
+      // needed to make a request — it is there for the User modal to say which
+      // simple-ai the SC account signs in to
+      __SC_BASE_URL__: JSON.stringify(resolveBaseUrl(env.SC_BASE_URL)),
       ...componentEnv,
     },
     optimizeDeps: {

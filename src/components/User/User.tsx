@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, showToast } from "@ui";
 import LoginModal from "@components/LoginModal";
 import { useUser } from "@contexts/user";
 import * as api from "@utils/user";
-import { getScAccount, setScAccount, clearScAccount, loginSc } from "@utils/sc";
+import { getScAccount, setScAccount, clearScAccount, loginSc, SC_BASE_URL } from "@utils/sc";
 import styles from "./user.module.css";
 
 type UserProps = {
@@ -23,17 +23,34 @@ export default function User({ store, onRestore }: UserProps) {
   const [scName, setScName] = useState("");
   const [scPassword, setScPassword] = useState("");
   const [scToken, setScToken] = useState("");
+  const [scHelpOpen, setScHelpOpen] = useState(false);
+  const scHelpRef = useRef<HTMLDivElement>(null);
 
-  // Read the saved account each time the modal opens. Only the username and
-  // the token are kept, so the password box always starts empty. With nothing
-  // saved yet the box starts on the liveboard username, which is usually the
-  // same account
+  // Same dismissal as the Real Estate Calc tiles: anywhere outside the heading
+  // row closes the popover, and the ? itself toggles it. Listening on the capture
+  // phase rather than the bubble — Modal stops mousedown propagation on its own
+  // content, so a bubble-phase listener on document never sees a click inside it
+  useEffect(() => {
+    if (!scHelpOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      const el = scHelpRef.current;
+      if (el && !el.contains(e.target as Node)) setScHelpOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside, true);
+    return () => document.removeEventListener("mousedown", handleClickOutside, true);
+  }, [scHelpOpen]);
+
+  // Read the saved account each time the modal opens, password included — it is
+  // stored, so the box shows what the cards are using rather than an empty field
+  // that looks like nothing is saved. With nothing saved yet the username starts
+  // on the liveboard username, which is usually the same account
   useEffect(() => {
     if (!profileOpen || !user) return;
     const account = getScAccount();
     setScName(account.username || user);
     setScToken(account.token);
-    setScPassword("");
+    setScPassword(account.password);
+    setScHelpOpen(false);
   }, [profileOpen, user]);
 
   async function handleDownload() {
@@ -75,9 +92,10 @@ export default function User({ store, onRestore }: UserProps) {
     setBusy(true);
     try {
       const token = await loginSc(username, scPassword);
-      setScAccount({ username, token });
+      // The password is saved with the token and left in the box: the Chat card logs
+      // its CLI in with it, and clearing the field would read as having lost it
+      setScAccount({ username, password: scPassword, token });
       setScToken(token);
-      setScPassword("");
       showToast(t("user.scSaveDone"));
     } catch (err) {
       showToast(err instanceof Error && err.message ? err.message : t("user.error"));
@@ -152,14 +170,38 @@ export default function User({ store, onRestore }: UserProps) {
           </section>
 
           <section className={styles.section}>
-            <h3 className={styles.sectionTitle}>{t("user.scAccountSection")}</h3>
+            <div className={styles.sectionHeader}>
+              <h3 className={styles.sectionTitle}>{t("user.scAccountSection")}</h3>
+              {/* The popover hangs off this wrapper rather than the whole heading row,
+                  so it opens at the ? instead of back at the start of the title */}
+              <span className={styles.infoWrap} ref={scHelpRef}>
+                <button
+                  type="button"
+                  className={styles.infoBtn}
+                  aria-label={t("user.scHelp")}
+                  aria-expanded={scHelpOpen}
+                  onClick={() => setScHelpOpen((open) => !open)}
+                >
+                  <span className={styles.infoMark}>?</span>
+                </button>
+                {scHelpOpen && (
+                  <div className={styles.infoPopover}>
+                    <p className={styles.infoText}>{t("user.scHelpText")}</p>
+                    <a className={styles.infoLink} href={SC_BASE_URL} target="_blank" rel="noreferrer">
+                      {SC_BASE_URL}
+                    </a>
+                  </div>
+                )}
+              </span>
+            </div>
             <div className={styles.fields}>
               {/* Browsers ignore autocomplete="off" on credential-shaped fields, so both
                   names are deliberately non-semantic, the password is a masked text box
                   rather than an input[type="password"] — the only field a browser offers
                   to save — and data-1p-ignore / data-lpignore keep the third-party
-                  managers out. The password is never persisted anywhere; only the token
-                  the server trades it for is. */}
+                  managers out. The password itself is saved in this browser's storage
+                  (see @utils/sc), so a card can sign a CLI in on its own; Clear
+                  Credential is what removes it. */}
               <input
                 className={styles.input}
                 name="sc-account"

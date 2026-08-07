@@ -62,6 +62,8 @@
     "create": "Create",
     "layoutSection": "Layout",
     "scAccountSection": "SC Account",
+    "scHelp": "About the SC account",
+    "scHelpText": "Powers the board's AI features — the Chat card, generating and rewriting card text, and anything else a card does with AI. Signs in to:",
     "scUsername": "Username",
     "scPassword": "Password",
     "scGetCredential": "Get Credential",

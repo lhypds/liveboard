@@ -60,6 +60,8 @@
     "loginFailed": "ログインに失敗しました。",
     "layoutSection": "レイアウト",
     "scAccountSection": "SC アカウント",
+    "scHelp": "SC アカウントについて",
+    "scHelpText": "ボードの AI 機能に使われます — Chat カード、カード本文の生成・書き換え、その他 AI を使うカード。ログイン先:",
     "scUsername": "ユーザー名",
     "scPassword": "パスワード",
     "scGetCredential": "認証情報を取得",

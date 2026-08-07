@@ -1,10 +1,24 @@
 export type ScAccount = {
   username: string;
+  /**
+   * Kept alongside the token because a card can need the password itself: the Chat
+   * card signs its `sc` CLI in with `:login <user> <password>`, which is the only
+   * login the CLI speaks — a token is no use to it. Stored as typed, so anything
+   * that can read this browser's storage can read it.
+   */
+  password: string;
   /** The JWT simple-ai issued at login; empty until a login succeeds */
   token: string;
 };
 
-const EMPTY: ScAccount = { username: "", token: "" };
+const EMPTY: ScAccount = { username: "", password: "", token: "" };
+
+/**
+ * Which simple-ai the account belongs to — the root .env's SC_BASE_URL, or
+ * simple-ai.io when that is unset. Only for showing the user where they are
+ * signing in; the requests themselves go through the board's own server.
+ */
+export const SC_BASE_URL: string = __SC_BASE_URL__;
 
 // One record for the whole board rather than one per liveboard user, so a card
 // can read the credential without knowing who is signed in
@@ -33,8 +47,10 @@ export function getScAccount(): ScAccount {
       if (stored !== null) localStorage.setItem(KEY, stored);
     }
     if (!stored) return EMPTY;
-    const { username, token } = JSON.parse(stored) as Partial<ScAccount>;
-    return { username: username ?? "", token: token ?? "" };
+    // A record saved before the password was kept has none; the fields default
+    // to empty rather than the read failing over it
+    const { username, password, token } = JSON.parse(stored) as Partial<ScAccount>;
+    return { username: username ?? "", password: password ?? "", token: token ?? "" };
   } catch {
     return EMPTY;
   }
