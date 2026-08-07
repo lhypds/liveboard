@@ -125,6 +125,7 @@ export default defineConfig(({ mode }) => {
         "@ui": path.resolve(__dirname, "src/ui"),
         "@components": path.resolve(__dirname, "src/components"),
         "@contexts": path.resolve(__dirname, "src/contexts"),
+        "@hooks": path.resolve(__dirname, "src/hooks"),
         "@pages": path.resolve(__dirname, "src/pages"),
         "@utils": path.resolve(__dirname, "src/utils"),
         "@modules": path.resolve(__dirname, "src/module.ts"),

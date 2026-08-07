@@ -39,11 +39,11 @@ function overlay(partial: string, original: string): string {
 
 type GenerateProps = {
   /**
-   * The card's current text; what gets rewritten. A card whose text isn't one fixed
-   * field — Code, showing the source of whichever language is selected — passes a
-   * function instead, which is read when the run starts rather than at render
+   * The card's current text; what gets rewritten. Read when the run starts rather
+   * than at render — a card's text can be whatever it is showing at the time (Code
+   * hands over the source of whichever language is selected)
    */
-  content: string | (() => string);
+  content: () => string;
   /**
    * The card's `prompt` config: a standing description of the scenario, so the
    * model knows what this content is before it reads the instruction
@@ -51,13 +51,18 @@ type GenerateProps = {
   prompt?: string;
   /** Replaces the card's text — called repeatedly as the answer streams in */
   onGenerated: (next: string) => void;
+  /**
+   * The whole run as one change, once it has stopped: the text as it was, and the
+   * text left on the card. What the board's Ctrl+Z steps back through
+   */
+  onCommit?: (before: string, after: string) => void;
   /** What to show over the card's content while it works; "" clears it */
   onStatus?: (status: string, isWarning?: boolean) => void;
   /** True for the whole run — the wait for the first words, and the writing after */
   onBusy?: (busy: boolean) => void;
 };
 
-export default function Generate({ content, prompt, onGenerated, onStatus, onBusy }: GenerateProps) {
+export default function Generate({ content, prompt, onGenerated, onCommit, onStatus, onBusy }: GenerateProps) {
   const { t } = useTranslation();
   const label = t("generate.tooltip");
   const [open, setOpen] = useState(false);
@@ -113,7 +118,16 @@ export default function Generate({ content, prompt, onGenerated, onStatus, onBus
 
     // Read once, here: the rest of the run overlays its answer onto this text, so
     // it has to be the same text from the first chunk to the last
-    const original = typeof content === "function" ? content() : content;
+    const original = content();
+
+    // The last text this run put on the card. Held in an object rather than a
+    // plain variable because it is written from the stream callback below and
+    // read back out here once the run is over
+    const wrote = { text: original };
+    const write = (text: string) => {
+      wrote.text = text;
+      onGenerated(text);
+    };
 
     let streamed = false;
     let lastWrite = 0;
@@ -137,7 +151,7 @@ export default function Generate({ content, prompt, onGenerated, onStatus, onBus
           if (now - lastWrite < STREAM_INTERVAL_MS) return;
           lastWrite = now;
           // The final write below trims whatever of the original is left over
-          onGenerated(overlay(partial, original));
+          write(overlay(partial, original));
         },
         signal: controller.signal,
       });
@@ -148,7 +162,7 @@ export default function Generate({ content, prompt, onGenerated, onStatus, onBus
       }
       onStatus?.("");
       // The throttle may have skipped the last chunks
-      onGenerated(next);
+      write(next);
     } catch (err) {
       if (controller.signal.aborted) return;
       // Only reachable if the account was cleared after the modal opened; same
@@ -159,6 +173,10 @@ export default function Generate({ content, prompt, onGenerated, onStatus, onBus
       if (abortRef.current === controller) abortRef.current = null;
       setLoading(false);
       onBusy?.(false);
+      // One entry for the whole run, from here rather than from the success path
+      // alone: a run that fails after the first chunks leaves half a rewrite on
+      // the card, which is exactly when putting the old text back matters most
+      if (!controller.signal.aborted && wrote.text !== original) onCommit?.(original, wrote.text);
       // Aborting means the card was unmounted mid-run; don't let its status be
       // waiting there if the same card comes back (a board switched away and back)
       if (controller.signal.aborted) onStatus?.("");

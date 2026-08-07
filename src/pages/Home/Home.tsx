@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import GridLayout from "react-grid-layout/legacy";
 import type { Layout, LayoutItem } from "react-grid-layout/legacy";
@@ -146,6 +146,25 @@ type GenerateTarget = {
   onGenerated: (next: string) => void;
 };
 
+// One finished Generate run: the card's text before it, and the text it left
+// behind. Runs on a card stack up, so Ctrl+Z walks back through them in order
+// and Ctrl+Shift+Z walks forward again. `index` is how many are applied.
+type GenEdit = { before: string; after: string };
+type GenHistory = { edits: GenEdit[]; index: number };
+
+// How far back a single card can be walked; each entry holds two whole copies
+// of its text, so this is a memory bound rather than a useful limit
+const GEN_HISTORY_LIMIT = 20;
+
+// Something with an undo stack of its own — a modal's instruction box, the board
+// name field. Ctrl+Z belongs to whatever is being typed in, not to a generation
+function isTextField(el: Element | null): boolean {
+  return (
+    el instanceof HTMLElement &&
+    (el.isContentEditable || el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT")
+  );
+}
+
 export default function Home() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language as Lang;
@@ -164,6 +183,13 @@ export default function Home() {
   // Cards that named their own Generate target (see `_setGenerate` below) rather than
   // taking the default one. Keyed by instance id
   const [generateTargets, setGenerateTargets] = useState<Record<string, GenerateTarget>>({});
+  // What each card's finished runs changed, keyed by instance id. A ref rather than
+  // state: nothing on screen is drawn from it, and a run in flight is already
+  // re-rendering the board many times a second
+  const genHistoryRef = useRef<Record<string, GenHistory>>({});
+  // Which card Ctrl+Z means when the focus isn't in one — the card generated last,
+  // which is where the user's attention was when the modal closed
+  const lastGeneratedRef = useRef<string | null>(null);
 
   useEffect(() => {
     document.title = t("home.title");
@@ -243,6 +269,87 @@ export default function Home() {
     updateItems((prev) => prev.map((it) => (it.i === id ? { ...it, ...layoutPatch, config: moduleConfig } : it)));
   };
 
+  // Where a card's Generate reads its text and writes the rewrite back. A module
+  // opts into AI rewriting either by declaring a `prompt` in its comp config — the
+  // standing description of what its `content` field is — or, when its text isn't
+  // that one field, by registering a target of its own (see `_setGenerate` below).
+  // Null for a card that takes no rewrites, which is what leaves the button off it.
+  const generateTarget = (id: string): GenerateTarget | null => {
+    const registered = generateTargets[id];
+    if (registered) return registered;
+    const card = CARDS_BY_ID.get(moduleId(id));
+    if (!card?.comp || !("prompt" in card.comp)) return null;
+    // An id left over from another board — its history is still here, its card isn't
+    if (!items.some((it) => it.i === id)) return null;
+    return {
+      // Read when called rather than now: a run streams for as long as it takes,
+      // and an undo can come long after that
+      content: () => compText(configs[id]?.comp as Record<string, unknown> | undefined, "content"),
+      prompt:
+        compText(configs[id]?.comp as Record<string, unknown> | undefined, "prompt") ||
+        compText(card.comp, "prompt"),
+      onGenerated: (next: string) => saveContent(id, next),
+    };
+  };
+
+  // The keyboard handler below is set up once and outlives the render that made it,
+  // so it resolves targets through this rather than through that render's configs
+  const liveTargetRef = useRef(generateTarget);
+  useEffect(() => {
+    liveTargetRef.current = generateTarget;
+  });
+
+  // A finished run, recorded as one change however many times its text landed on
+  // the card while it streamed. Anything undone and not put back is dropped: the
+  // new text is what follows the old one now.
+  const recordGeneration = (id: string, before: string, after: string) => {
+    const history = genHistoryRef.current[id];
+    const edits = [...(history ? history.edits.slice(0, history.index) : []), { before, after }].slice(
+      -GEN_HISTORY_LIMIT,
+    );
+    genHistoryRef.current[id] = { edits, index: edits.length };
+    lastGeneratedRef.current = id;
+  };
+
+  // Ctrl+Z (Cmd+Z) puts back what a generated rewrite replaced, Ctrl+Shift+Z brings
+  // the rewrite back again — on the card the focus is in, or failing that on the
+  // last card generated.
+  useEffect(() => {
+    // One step back through a card's rewrites, or forward with `redo`. False when
+    // there is nothing to step to, or when the card's text is no longer the text
+    // that step produced: it has been edited since, and Ctrl+Z belongs to whatever
+    // did that rather than to a run that finished before it.
+    const step = (id: string, redo: boolean): boolean => {
+      const history = genHistoryRef.current[id];
+      const edit = history?.edits[redo ? history.index : history.index - 1];
+      if (!history || !edit) return false;
+      const target = liveTargetRef.current(id);
+      if (!target) return false;
+      const [from, to] = redo ? [edit.before, edit.after] : [edit.after, edit.before];
+      if (target.content() !== from) return false;
+      target.onGenerated(to);
+      history.index += redo ? 1 : -1;
+      lastGeneratedRef.current = id;
+      return true;
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey || !(e.ctrlKey || e.metaKey)) return;
+      if (e.key.toLowerCase() !== "z" && e.code !== "KeyZ") return;
+      const active = document.activeElement;
+      const inCard = active?.closest("[data-card-id]")?.getAttribute("data-card-id");
+      // Typing somewhere of the board's own keeps its native undo; only a card, or
+      // nothing in particular, reaches a generation
+      if (!inCard && isTextField(active)) return;
+      const id = inCard ?? lastGeneratedRef.current;
+      // Nothing to step to leaves the key alone, so a card's own undo still works
+      if (id && step(id, e.shiftKey)) e.preventDefault();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Custom name in the current language, else any language it was set in, else "Board N"
   const boardNames = store.boards.map(
     (board, i) =>
@@ -298,6 +405,8 @@ export default function Home() {
   };
 
   const handleDelete = (id: string) => {
+    delete genHistoryRef.current[id];
+    if (lastGeneratedRef.current === id) lastGeneratedRef.current = null;
     updateItems((prev) => prev.filter((it) => it.i !== id));
   };
 
@@ -370,19 +479,7 @@ export default function Home() {
       ),
     };
 
-    // A module opts into AI rewriting either by declaring a `prompt` in its comp
-    // config — the standing description of what its `content` field is — or, when
-    // its text isn't that one field, by registering a target of its own
-    const registered = generateTargets[item.i];
-    const generate =
-      registered ??
-      (card.comp && "prompt" in card.comp
-        ? {
-            content: compText(cfgComp, "content"),
-            prompt: compText(cfgComp, "prompt") || compText(card.comp, "prompt"),
-            onGenerated: (next: string) => saveContent(item.i, next),
-          }
-        : null);
+    const generate = generateTarget(item.i);
 
     const isRefreshing = refreshingIds.has(item.i);
     const setRefreshing = (loading: boolean) => {
@@ -412,6 +509,7 @@ export default function Home() {
                 content={generate.content}
                 prompt={generate.prompt}
                 onGenerated={generate.onGenerated}
+                onCommit={(before, after) => recordGeneration(item.i, before, after)}
                 onStatus={(text, warning) =>
                   setGenStatus((prev) => {
                     if (!text) {
@@ -524,7 +622,12 @@ export default function Home() {
               const content = renderCard(item);
               if (!content) return null;
               return (
-                <div key={item.i} className={styles.mobileItem} style={{ height: item.h * CELL }}>
+                <div
+                  key={item.i}
+                  className={styles.mobileItem}
+                  data-card-id={item.i}
+                  style={{ height: item.h * CELL }}
+                >
                   {content}
                 </div>
               );
@@ -544,7 +647,9 @@ export default function Home() {
           width={GRID_WIDTH}
         >
           {layout.map((item) => (
-            <div key={item.i}>{renderCard(item)}</div>
+            <div key={item.i} data-card-id={item.i}>
+              {renderCard(item)}
+            </div>
           ))}
         </GridLayout>
       )}
