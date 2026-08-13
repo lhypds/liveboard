@@ -125,11 +125,16 @@ export default defineConfig(({ mode }) => {
     worker: {
       format: "es",
     },
+    // Two boards on one machine each need their own PORT. Without strictPort a second
+    // instance asking for a taken port silently moves to the next one, where it answers
+    // nothing the reverse proxy sends it — so a clash fails loudly here instead.
     server: {
       allowedHosts,
+      strictPort: true,
     },
     preview: {
       allowedHosts,
+      strictPort: true,
     },
     resolve: {
       alias: {
