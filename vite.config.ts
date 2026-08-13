@@ -96,7 +96,14 @@ function refreshApiPlugin(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const allowedHosts = env.HOST ? [env.HOST] : [];
+  // One board is often reachable under more than one name — a public domain plus the
+  // deploy host's own — and Vite blocks every name it wasn't told about, so HOST takes a
+  // comma-separated list. Empty stays empty: that is local development, where Vite's own
+  // localhost default applies.
+  const allowedHosts = (env.HOST ?? "")
+    .split(",")
+    .map((host) => host.trim())
+    .filter(Boolean);
   const componentEnv = loadComponentEnv(mode);
 
   return {

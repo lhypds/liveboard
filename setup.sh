@@ -41,7 +41,7 @@ ask_env() {
 echo ""
 echo "==> Checking root .env..."
 ask_env HOST \
-  "Public hostname this board is served from, e.g. liveboard.example.jp (leave empty for local development)."
+  "Public hostname this board is served from, e.g. liveboard.example.jp — comma-separate several (leave empty for local development)."
 
 # board.config.json
 if [ ! -f board.config.json ]; then
