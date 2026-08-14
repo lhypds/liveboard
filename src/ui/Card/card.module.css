@@ -42,6 +42,8 @@
   overflow: auto;
   font-size: 13px;
   color: #0f172a;
+  /* Bottom only: it keeps content out of the grid resize handle's corner (the handle also sits above
+     the body on z-index). Nothing on the right — a gutter there would leave every card's content
+     10px inside its own header, which is the one edge the body has to line up with. */
   padding-bottom: 12px;
-  padding-right: 10px;
 }
