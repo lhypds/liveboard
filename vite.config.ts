@@ -6,6 +6,7 @@ import { execFile } from "child_process";
 import { readdirSync, existsSync } from "fs";
 import userApiPlugin from "./server/users";
 import scApiPlugin, { resolveBaseUrl } from "./server/sc";
+import dataApiPlugin from "./server/data";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -124,7 +125,7 @@ export default defineConfig(({ mode }) => {
   const componentEnv = loadComponentEnv(mode);
 
   return {
-    plugins: [react(), refreshApiPlugin(), userApiPlugin(), scApiPlugin(env.SC_BASE_URL)],
+    plugins: [react(), refreshApiPlugin(), userApiPlugin(), scApiPlugin(env.SC_BASE_URL), dataApiPlugin()],
     // Root .env is for board/runtime settings. Component VITE_ values are
     // injected by loadComponentEnv instead of being read from the root.
     envDir: path.join(__dirname, "src/modules"),
@@ -160,6 +161,7 @@ export default defineConfig(({ mode }) => {
         "@contexts": path.resolve(__dirname, "src/contexts"),
         "@hooks": path.resolve(__dirname, "src/hooks"),
         "@pages": path.resolve(__dirname, "src/pages"),
+        "@services": path.resolve(__dirname, "src/services"),
         "@utils": path.resolve(__dirname, "src/utils"),
         "@modules": path.resolve(__dirname, "src/module.ts"),
       },
