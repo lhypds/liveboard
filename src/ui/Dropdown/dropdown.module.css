@@ -1,0 +1,92 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.trigger {
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid black;
+  background: #fff;
+  color: #0f172a;
+  padding: 0 6px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  user-select: none;
+  cursor: pointer;
+}
+
+.wrapper:hover .trigger {
+  background: black;
+  color: #fff;
+}
+
+.triggerLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caret {
+  flex-shrink: 0;
+  font-size: 9px;
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 999;
+  flex-direction: column;
+  min-width: 100%;
+  /* A long option list (a language filter, a fortnight of dates) reaches past the bottom of a short
+     card, which clips it — the card body hides its overflow — so it scrolls at eight options
+     instead, and scrolls without showing a bar, as everything else on the board does. */
+  max-height: 176px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* Overlap the trigger's bottom border with the first option's top border so the
+     shared edge stays a single hairline (see .option:first-child) */
+  margin-top: -1px;
+}
+
+.dropdown::-webkit-scrollbar {
+  display: none;
+}
+
+.wrapper:hover .dropdown,
+.wrapper[data-open="true"] .dropdown {
+  display: flex;
+}
+
+.option {
+  flex: 0 0 auto;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  border: 1px solid black;
+  border-top: none;
+  background: #fff;
+  color: #0f172a;
+  padding: 2px 6px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+}
+
+.option:first-child {
+  border-top: 1px solid black;
+}
+
+.option:hover,
+.active {
+  background: black;
+  color: #fff;
+}

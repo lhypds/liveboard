@@ -58,6 +58,16 @@ function refreshApiPlugin(): Plugin {
           res.end(JSON.stringify({ error: "invalid module name" }));
           return;
         }
+        // A component may be asked for one repository rather than its whole dataset (GitHubRanking's
+        // repo card fetches the one that was clicked). Validated to a GitHub owner/name here and
+        // handed to execFile as an argument — never through a shell, so nothing in it can be read as
+        // anything but a value.
+        const repo = url.searchParams.get("repo") ?? "";
+        if (repo && !/^[\w.-]{1,100}\/[\w.-]{1,100}$/.test(repo)) {
+          res.writeHead(400, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "invalid repo" }));
+          return;
+        }
         const modulesDir = path.join(__dirname, "src/modules");
         let scriptPath: string | null = null;
         try {
@@ -79,11 +89,18 @@ function refreshApiPlugin(): Plugin {
           return;
         }
         try {
-          await new Promise<void>((resolve, reject) =>
-            execFile("bash", [scriptPath!], { cwd: path.dirname(scriptPath!) }, (err) => (err ? reject(err) : resolve())),
+          // stdout comes back with the answer: a script asked for a single item can print it, and
+          // the card then has it without waiting for the file it wrote to be picked up by a build.
+          const stdout = await new Promise<string>((resolve, reject) =>
+            execFile(
+              "bash",
+              repo ? [scriptPath!, `--repo=${repo}`] : [scriptPath!],
+              { cwd: path.dirname(scriptPath!), maxBuffer: 8 * 1024 * 1024 },
+              (err, out) => (err ? reject(err) : resolve(out)),
+            ),
           );
           res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ ok: true }));
+          res.end(JSON.stringify({ ok: true, stdout }));
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : String(err);
           res.writeHead(500, { "Content-Type": "application/json" });
