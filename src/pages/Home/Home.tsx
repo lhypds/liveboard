@@ -547,7 +547,11 @@ export default function Home() {
           </>
         }
       >
-        <div className={styles.contentWrapper} data-generating={generatingIds.has(item.i) ? "" : undefined}>
+        <div
+          className={styles.contentWrapper}
+          data-module={moduleId(item.i)}
+          data-generating={generatingIds.has(item.i) ? "" : undefined}
+        >
           {isRefreshing && <div className={styles.statusOverlay}>{t("refresh.loading")}</div>}
           {genStatus[item.i] && (
             <div

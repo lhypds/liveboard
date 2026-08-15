@@ -99,6 +99,14 @@
   color: #6b7280;
 }
 
+/* News hangs its category tabs off the very top-left corner of the content box, and
+   that strip carries a border of its own. There is no full-content border to protect
+   here, so the 1px the veil normally leaves standing only exposes two sides of that
+   button — the veil reaches the corner instead. */
+.contentWrapper[data-module="News"] .statusOverlay {
+  inset: 0 -9px -9px 0;
+}
+
 /* Warnings are stated in black rather than red — this board says everything else
    in black too, and a card that couldn't be rewritten is not an alarm */
 .statusOverlayWarning {
