@@ -1,12 +1,12 @@
-import { defineConfig, loadEnv, type Plugin } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
-import { execFile } from "child_process";
 import { readdirSync, existsSync } from "fs";
 import userApiPlugin from "./server/users";
 import scApiPlugin, { resolveBaseUrl } from "./server/sc";
 import dataApiPlugin from "./server/data";
+import refreshApiPlugin from "./server/refresh";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -42,74 +42,6 @@ function loadComponentEnv(mode: string): Record<string, string> {
   }
 
   return Object.fromEntries(Object.entries(values).map(([key, { value }]) => [`import.meta.env.${key}`, JSON.stringify(value)]));
-}
-
-function refreshApiPlugin(): Plugin {
-  return {
-    name: "refresh-api",
-    configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
-        if (req.method !== "POST" || !req.url?.startsWith("/api/refresh")) {
-          return next();
-        }
-        const url = new URL(req.url, "http://localhost");
-        const moduleName = url.searchParams.get("module") ?? "";
-        if (!/^[\w-]+$/.test(moduleName)) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "invalid module name" }));
-          return;
-        }
-        // A component may be asked for one repository rather than its whole dataset (GitHubRanking's
-        // repo card fetches the one that was clicked). Validated to a GitHub owner/name here and
-        // handed to execFile as an argument — never through a shell, so nothing in it can be read as
-        // anything but a value.
-        const repo = url.searchParams.get("repo") ?? "";
-        if (repo && !/^[\w.-]{1,100}\/[\w.-]{1,100}$/.test(repo)) {
-          res.writeHead(400, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "invalid repo" }));
-          return;
-        }
-        const modulesDir = path.join(__dirname, "src/modules");
-        let scriptPath: string | null = null;
-        try {
-          for (const repo of readdirSync(modulesDir, { withFileTypes: true })
-            .filter((d) => d.isDirectory() && !d.name.startsWith("."))
-            .map((d) => d.name)) {
-            const candidate = path.join(modulesDir, repo, moduleName, "refresh.sh");
-            if (existsSync(candidate)) {
-              scriptPath = candidate;
-              break;
-            }
-          }
-        } catch {
-          /* modulesDir missing */
-        }
-        if (!scriptPath) {
-          res.writeHead(404, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: "refresh.sh not found" }));
-          return;
-        }
-        try {
-          // stdout comes back with the answer: a script asked for a single item can print it, and
-          // the card then has it without waiting for the file it wrote to be picked up by a build.
-          const stdout = await new Promise<string>((resolve, reject) =>
-            execFile(
-              "bash",
-              repo ? [scriptPath!, `--repo=${repo}`] : [scriptPath!],
-              { cwd: path.dirname(scriptPath!), maxBuffer: 8 * 1024 * 1024 },
-              (err, out) => (err ? reject(err) : resolve(out)),
-            ),
-          );
-          res.writeHead(200, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ ok: true, stdout }));
-        } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : String(err);
-          res.writeHead(500, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({ error: msg }));
-        }
-      });
-    },
-  };
 }
 
 export default defineConfig(({ mode }) => {
