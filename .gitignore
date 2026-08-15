@@ -4,6 +4,7 @@ node_modules/
 .env
 dist/
 data/users/
+data/images/
 .claude/
 src/modules/
 board.config.json
