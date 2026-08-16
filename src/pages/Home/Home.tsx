@@ -126,6 +126,60 @@ function nextY(layout: Layout): number {
   return layout.reduce((max, it) => Math.max(max, it.y + it.h), 0);
 }
 
+// The stretch of board the user can actually see, in grid units. The board is far
+// wider and taller than the window, so this is what "on screen" means when a new
+// card is looking for somewhere to go.
+type Bounds = { minX: number; maxX: number; minY: number; maxY: number };
+
+function visibleBounds(grid: HTMLDivElement | null): Bounds | null {
+  if (!grid) return null;
+  const rect = grid.getBoundingClientRect();
+  // clientWidth/Height rather than innerWidth/Height: scrollbars are not board
+  const vw = document.documentElement.clientWidth;
+  const vh = document.documentElement.clientHeight;
+  // Whole cells only, so a spot that clears these bounds is fully on screen
+  const bounds = {
+    minX: Math.ceil(Math.max(0, -rect.left) / CELL),
+    minY: Math.ceil(Math.max(0, -rect.top) / CELL),
+    maxX: Math.floor(Math.min(GRID_WIDTH, vw - rect.left) / CELL),
+    maxY: Math.floor((vh - rect.top) / CELL),
+  };
+  return bounds.maxX > bounds.minX && bounds.maxY > bounds.minY ? bounds : null;
+}
+
+function collides(items: StoredItem[], x: number, y: number, w: number, h: number): boolean {
+  return items.some((it) => x < it.x + it.w && x + w > it.x && y < it.y + it.h && y + h > it.y);
+}
+
+// Where a card put down at (x, y) actually comes to rest: the grid compacts
+// vertically, so a card rises until something is in its way
+function settle(items: StoredItem[], x: number, y: number, w: number, h: number): number {
+  let top = y;
+  while (top > 0 && !collides(items, x, top - 1, w, h)) top--;
+  return top;
+}
+
+// The first free w×h spot on the visible board, read top to bottom then left to
+// right. Null when nothing that size is free on screen — a card wider or taller
+// than the window never fits, and a full screen has nowhere to put one.
+function findSpot(items: StoredItem[], w: number, h: number, bounds: Bounds): { x: number; y: number } | null {
+  for (let y = bounds.minY; y + h <= bounds.maxY; y++) {
+    for (let x = bounds.minX; x + w <= bounds.maxX; x++) {
+      if (collides(items, x, y, w, h)) continue;
+      const top = settle(items, x, y, w, h);
+      // Rising off the top of the window is no better than landing below it
+      if (top >= bounds.minY) return { x, y: top };
+    }
+  }
+  return null;
+}
+
+// Somewhere on screen for a new card, or — only when the visible board has no
+// room for one that size — below everything, where cards used to always land
+function place(items: StoredItem[], w: number, h: number, bounds: Bounds | null): { x: number; y: number } {
+  return (bounds && findSpot(items, w, h, bounds)) ?? { x: 0, y: nextY(items) };
+}
+
 type InfoItem = { key: Record<string, string>; value: Record<string, string> };
 type InfoSection = { title: Record<string, string>; items: InfoItem[] };
 
@@ -190,6 +244,9 @@ export default function Home() {
   // Which card Ctrl+Z means when the focus isn't in one — the card generated last,
   // which is where the user's attention was when the modal closed
   const lastGeneratedRef = useRef<string | null>(null);
+  // The grid's own element, read for where the window is over the board when a
+  // card is added. Null on mobile, which stacks the cards instead of gridding them.
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.title = t("home.title");
@@ -391,13 +448,17 @@ export default function Home() {
       })),
       ...(card.comp ? { comp: { ...card.comp } } : {}),
     };
+    // Read before the update runs: where the window sits over the board is a
+    // question for the DOM, and the updater is only allowed to look at the items
+    const bounds = visibleBounds(gridRef.current);
     updateItems((prev) => [
       ...prev,
-      { ...toLayoutItem(card), i: instanceId, x: 0, y: nextY(prev), config: defaultConfig },
+      { ...toLayoutItem(card), i: instanceId, ...place(prev, card.w, card.h, bounds), config: defaultConfig },
     ]);
   };
 
   const handleDuplicate = (id: string) => {
+    const bounds = visibleBounds(gridRef.current);
     updateItems((prev) => {
       const source = prev.find((it) => it.i === id);
       if (!source) return prev;
@@ -407,8 +468,7 @@ export default function Home() {
         {
           ...source,
           i: instanceId,
-          x: 0,
-          y: nextY(prev),
+          ...place(prev, source.w, source.h, bounds),
           ...(source.config ? { config: structuredClone(source.config) } : {}),
         },
       ];
@@ -649,6 +709,7 @@ export default function Home() {
       ) : (
         <GridLayout
           key={store.active}
+          innerRef={gridRef}
           className={styles.content}
           layout={layout}
           onLayoutChange={persist}
