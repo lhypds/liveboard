@@ -180,6 +180,25 @@ function place(items: StoredItem[], w: number, h: number, bounds: Bounds | null)
   return (bounds && findSpot(items, w, h, bounds)) ?? { x: 0, y: nextY(items) };
 }
 
+// Command — or Ctrl, for a keyboard without one — held through a drag. The board
+// normally floats every card up to the top of its column; a drag with this held
+// down leaves the card where it is dropped instead.
+function isFreeDrag(event: Event | null): boolean {
+  const e = event as MouseEvent | null;
+  return Boolean(e && (e.metaKey || e.ctrlKey));
+}
+
+// A card put down by a free drag stays put. `static` is what keeps the grid's
+// vertical compaction off it — the other two flags put back the dragging and
+// resizing that `static` alone would take away, since to the grid "static" means
+// a card the user can't touch. Dragging it again without Command clears all three
+// and it floats like any other card.
+function setPinned<T extends LayoutItem>(item: T, pinned: boolean): T {
+  return pinned
+    ? { ...item, static: true, isDraggable: true, isResizable: true }
+    : { ...item, static: false, isDraggable: undefined, isResizable: undefined };
+}
+
 type InfoItem = { key: Record<string, string>; value: Record<string, string> };
 type InfoSection = { title: Record<string, string>; items: InfoItem[] };
 
@@ -250,6 +269,18 @@ export default function Home() {
   // The grid's own element, read for where the window is over the board when a
   // card is added. Null on mobile, which stacks the cards instead of gridding them.
   const gridRef = useRef<HTMLDivElement>(null);
+  // Whether the drag in progress is a free one — Command is down. It turns the
+  // grid's compaction off for as long as it lasts, so the card being dragged
+  // follows the cursor rather than floating to the top of its column.
+  const [freeDrag, setFreeDrag] = useState(false);
+  // Only a drag cares about Command; without this, every Cmd+key the user pressed
+  // would re-render the whole board twice for nothing
+  const draggingRef = useRef(false);
+  // What the drag that just ended decided about its card: pinned where it was
+  // dropped, or back to floating. Read by `persist`, which is where the layout
+  // the drag produced arrives — the grid reports that layout as it knew it, which
+  // is before the pin.
+  const pinRef = useRef<{ id: string; pinned: boolean } | null>(null);
 
   useEffect(() => {
     document.title = t("home.title");
@@ -287,10 +318,65 @@ export default function Home() {
     }));
 
   const persist = (next: Layout) => {
+    // What the drag that produced this layout decided about its card, if it was a
+    // drag that got us here
+    const pin = pinRef.current;
+    pinRef.current = null;
     updateItems((prev) => {
-      const prevConfigs = Object.fromEntries(prev.filter((it) => it.config).map((it) => [it.i, it.config!]));
-      return toStored(next, prevConfigs);
+      const before = new Map(prev.map((it) => [it.i, it]));
+      return next.map((item) => {
+        const was = before.get(item.i);
+        // Where a card sits is the grid's to say, but whether it is pinned is the
+        // board's: the grid hands back the layout as it knew it, which is from
+        // before the drag that just pinned or unpinned something.
+        const pinned = pin?.id === item.i ? pin.pinned : Boolean(was?.static);
+        return { ...setPinned(item, pinned), ...(was?.config ? { config: was.config } : {}) };
+      });
     });
+  };
+
+  // Command down when the drag starts, and again whenever it is pressed or let go
+  // mid-drag: the card starts or stops floating there and then, so what the user
+  // sees while dragging is where the card will land
+  useEffect(() => {
+    const syncFreeDrag = (e: KeyboardEvent) => {
+      if (draggingRef.current) setFreeDrag(e.metaKey || e.ctrlKey);
+    };
+    window.addEventListener("keydown", syncFreeDrag);
+    window.addEventListener("keyup", syncFreeDrag);
+    return () => {
+      window.removeEventListener("keydown", syncFreeDrag);
+      window.removeEventListener("keyup", syncFreeDrag);
+    };
+  }, []);
+
+  // The grid hands every drag callback the same six arguments; only the card being
+  // dragged and the mouse event behind it matter here
+  type DragCallback = (
+    layout: Layout,
+    oldItem: LayoutItem | null,
+    item: LayoutItem | null,
+    placeholder: LayoutItem | null,
+    e: Event,
+  ) => void;
+
+  const handleDragStart: DragCallback = (_layout, _oldItem, _item, _placeholder, e) => {
+    draggingRef.current = true;
+    pinRef.current = null;
+    setFreeDrag(isFreeDrag(e));
+  };
+
+  const handleDragStop: DragCallback = (_layout, _oldItem, item, _placeholder, e) => {
+    draggingRef.current = false;
+    setFreeDrag(false);
+    if (!item) return;
+    const pinned = isFreeDrag(e);
+    pinRef.current = { id: item.i, pinned };
+    // A drag that put the card back where it came from changes no layout, so the
+    // grid reports none and `persist` never runs — but the pin still has to land
+    if (Boolean(items.find((it) => it.i === item.i)?.static) !== pinned) {
+      updateItems((prev) => prev.map((it) => (it.i === item.i ? setPinned(it, pinned) : it)));
+    }
   };
 
   // A card writing its own state back — Note's text as it is typed, or a Generate
@@ -731,10 +817,20 @@ export default function Home() {
           className={styles.content}
           layout={layout}
           onLayoutChange={persist}
+          onDragStart={handleDragStart}
+          onDragStop={handleDragStop}
           cols={COLS}
           rowHeight={CELL}
           margin={[0, 0]}
           containerPadding={[0, 0]}
+          // Cards float up to fill the space above them, unless the drag is a free
+          // one (Command held) — then they stay where they are put
+          compactType={freeDrag ? null : "vertical"}
+          // A free drag disturbs nothing: a card that would land on top of another
+          // one is held back at the last free spot instead of pushing it aside.
+          // Pushing is also how the grid displaces a pinned card, which is the one
+          // thing a pin is supposed to prevent.
+          preventCollision={freeDrag}
           draggableHandle=".card-drag-handle"
           width={GRID_WIDTH}
         >

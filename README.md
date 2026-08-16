@@ -36,6 +36,22 @@ To start with PM2
 Setup and use `start.sh` or `restart.sh`.  
 
 
+Quick Tips
+----------
+
+Free drag  
+Drag a card by its header. Cards float up to fill the space above them.  
+Hold Command (Ctrl on a keyboard without one) while dragging to put a card down  
+anywhere: it stays where it is dropped, and stays there when other cards move,  
+when the card above it is deleted, and through a reload.  
+A free drag never moves anything else: a card is held back at the last free spot  
+rather than pushing aside whatever is already there.  
+Drag it again without Command to let it float with the rest.  
+
+Address drag
+
+
+
 Modules
 -------
 
