@@ -82,12 +82,9 @@
   position: absolute;
   /* Sits inside the content's own 1px border rather than over it: veiling the
      border washes it out, and the black one a generating card wears would barely
-     read. The right and bottom reach 9px past this wrapper because Card's .body
-     pads those two edges and a module that fills its card — Note — grows 10px
-     back into that padding, putting its border out there; 10px out less the 1px
-     border lands the veil exactly inside it. A module that doesn't grow just has
-     some of its own white padding veiled, which looks like nothing at all. */
-  inset: 1px -9px -9px 1px;
+     read. Card's .body has no padding, so the wrapper's edges are the content's
+     edges and 1px in on every side lands the veil exactly inside that border. */
+  inset: 1px;
   z-index: 1;
   display: flex;
   align-items: center;
@@ -104,7 +101,7 @@
    here, so the 1px the veil normally leaves standing only exposes two sides of that
    button — the veil reaches the corner instead. */
 .contentWrapper[data-module="News"] .statusOverlay {
-  inset: 0 -9px -9px 0;
+  inset: 0;
 }
 
 /* Warnings are stated in black rather than red — this board says everything else
