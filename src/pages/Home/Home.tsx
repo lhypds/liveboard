@@ -351,7 +351,7 @@ export default function Home() {
   }, []);
 
   // The grid hands every drag callback the same six arguments; only the card being
-  // dragged and the mouse event behind it matter here
+  // dragged, where it started, and the mouse event behind it matter here
   type DragCallback = (
     layout: Layout,
     oldItem: LayoutItem | null,
@@ -366,17 +366,15 @@ export default function Home() {
     setFreeDrag(isFreeDrag(e));
   };
 
-  const handleDragStop: DragCallback = (_layout, _oldItem, item, _placeholder, e) => {
+  const handleDragStop: DragCallback = (_layout, oldItem, item, _placeholder, e) => {
     draggingRef.current = false;
     setFreeDrag(false);
-    if (!item) return;
-    const pinned = isFreeDrag(e);
-    pinRef.current = { id: item.i, pinned };
-    // A drag that put the card back where it came from changes no layout, so the
-    // grid reports none and `persist` never runs — but the pin still has to land
-    if (Boolean(items.find((it) => it.i === item.i)?.static) !== pinned) {
-      updateItems((prev) => prev.map((it) => (it.i === item.i ? setPinned(it, pinned) : it)));
-    }
+    // The card's header is its drag handle, and its buttons sit in that header, so
+    // clicking Edit or Info is a drag of no distance as far as the grid is
+    // concerned. A card that hasn't been carried anywhere says nothing about
+    // whether it should be pinned, and pinning is only ever a drag's to decide.
+    if (!item || !oldItem || (item.x === oldItem.x && item.y === oldItem.y)) return;
+    pinRef.current = { id: item.i, pinned: isFreeDrag(e) };
   };
 
   // A card writing its own state back — Note's text as it is typed, or a Generate
