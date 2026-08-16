@@ -40,10 +40,21 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  /* Hidden, like the page's own bar in global.css and every module that scrolls. What reaches this
+     box is rarely content that wants reading: a module built to fill its card grows ~10px past it on
+     purpose, and .statusOverlay hangs 9px off the right and bottom while a card refreshes — both
+     would raise a pair of bars over a card that has nothing more to show. The box still scrolls to a
+     wheel, so a module that genuinely outgrows its card is not trapped. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   font-size: 13px;
   color: #0f172a;
   /* Bottom only: it keeps content out of the grid resize handle's corner (the handle also sits above
      the body on z-index). Nothing on the right — a gutter there would leave every card's content
      10px inside its own header, which is the one edge the body has to line up with. */
-  padding-bottom: 12px;
+}
+
+/* `scrollbar-width` only landed in Safari 18.4, and this board is also read on an old iPad */
+.body::-webkit-scrollbar {
+  display: none;
 }

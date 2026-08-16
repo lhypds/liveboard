@@ -25,8 +25,9 @@ resolves at **build** time. That has two costs:
 - Every file kept on disk is bundled, read or not. An archive of daily files
   grew the bundle a little every day, which is why the fetch scripts prune.
 
-Read over the API instead, `fetch.sh` — or the board's Refresh button, which
-runs the same script — is enough on its own.
+Read over the API instead, and `fetch.sh` is enough on its own: the card's
+Refresh button re-reads the folder, so whatever the last crawl wrote is on
+screen without a rebuild.
 
 
 Endpoints
@@ -114,32 +115,35 @@ Data flow
 ```
 Writing — a fetch script fills the folder
 
-    cron        deploy        Refresh button (card header)
-      │           │             │
-      │           │             ▼
-      │           │        POST /api/refresh?module=News    (vite.config.ts)
-      │           │             │
-      └───────────┴─────────────┴──►  refresh.sh ──► fetch.mjs
-                                                        │
-                                                        ▼
+    cron        deploy
+      │           │
+      └───────────┴──►  refresh.sh ──► fetch.mjs
+                                          │
+                                          ▼
                            src/modules/<repo>/News/data/2026-08-15.json
 
 Reading — a card asks for it, at request time
 
     News.tsx ──► News/data.ts ──► @services/data ─┬─► GET /api/data/News
-                                                  │     {"files":["2026-08-15.json", …]}
-                                                  └─► GET /api/data/News/2026-08-15.json
-                                                        the file, straight off disk
+       ▲                                          │     {"files":["2026-08-15.json", …]}
+       │                                          └─► GET /api/data/News/2026-08-15.json
+       │                                                the file, straight off disk
+    Refresh button (card header) — the same two reads, again
 ```
 
 `server/data.ts` reads that folder on each request. Nothing is bundled, so a
 file written a minute ago is served now, and one deleted is out of the listing
 just as fast.
 
-The two APIs pair up: Refresh (`POST /api/refresh?module=<module>`) runs the
-script that **writes** the folder, and the Data API **reads** it. Neither needs
-a build, so on a production board a Refresh click followed by a card reload
-shows the new data.
+The two APIs pair up: `POST /api/refresh?module=<module>` runs the script that
+**writes** the folder, and the Data API **reads** it. Neither needs a build, so
+on a production board a crawl shows up as soon as a card reads again.
+
+The card header's Refresh button is on the reading side only — it re-runs the
+card's own reads (see `_setRefresh` in `src/pages/Home/Home.tsx`) and never the
+refresh API, so a click costs a couple of requests to the board's own server
+rather than a crawl. Writing the folder stays with cron, a deploy, or running
+`refresh.sh` by hand.
 
 
 Notes

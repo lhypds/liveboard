@@ -4,9 +4,9 @@ import { ActionButton } from "@ui";
 
 type ResetProps = {
   /**
-   * Put the card back to a clean state. Unlike Refresh — which re-runs the component's
-   * `refresh.sh` on the server to fetch newer data — this is the card's own doing, so the
-   * button only appears for cards that register a handler (see `_setReset` in Home).
+   * Put the card back to a clean state. Unlike Refresh — which re-reads the data the card is
+   * already showing — this throws that state away. Registered the same way, so the button only
+   * appears for cards that register a handler (see `_setReset` in Home).
    */
   onReset: () => void | Promise<void>;
 };

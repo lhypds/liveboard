@@ -151,6 +151,12 @@
   color: #a3a3a3;
 }
 
+/* A day with nothing behind it (see the `hasData` prop): greyed, but still there to be picked —
+   and still overridden by `.selected` below, so picking one shows what was picked. */
+.empty {
+  color: #a3a3a3;
+}
+
 .selected {
   border-color: #000;
   background: #000;

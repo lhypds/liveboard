@@ -3,11 +3,17 @@ import { useTranslation } from "react-i18next";
 import { ActionButton } from "@ui";
 
 type RefreshProps = {
-  moduleId: string;
+  /**
+   * Re-fetch what the card shows — its own `data/` folder, or whichever API it reads. Nothing
+   * runs on the server: fetching new data into a component's folder is `refresh.sh`'s job, on a
+   * cron or by hand, and clicking this must never kick off a crawl. Like Reset, the button only
+   * appears for cards that register a handler (see `_setRefresh` in Home).
+   */
+  onRefresh: () => void | Promise<void>;
   onLoadingChange?: (loading: boolean) => void;
 };
 
-export default function Refresh({ moduleId, onLoadingChange }: RefreshProps) {
+export default function Refresh({ onRefresh, onLoadingChange }: RefreshProps) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +22,7 @@ export default function Refresh({ moduleId, onLoadingChange }: RefreshProps) {
     setLoading(true);
     onLoadingChange?.(true);
     try {
-      await fetch(`/api/refresh?module=${encodeURIComponent(moduleId)}`, { method: "POST" });
+      await onRefresh();
     } finally {
       setLoading(false);
       onLoadingChange?.(false);

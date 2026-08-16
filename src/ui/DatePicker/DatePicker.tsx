@@ -15,6 +15,12 @@ type DatePickerProps = {
   labels?: DatePickerLabels;
   min?: string;
   max?: string;
+  /**
+   * Which days have something behind them. A day this says no to is drawn grey but stays
+   * selectable — being told a day is empty is an answer, where a day taken out of the calendar
+   * only leaves the reader wondering. Unset means every day is drawn normally.
+   */
+  hasData?: (date: string) => boolean;
   align?: "start" | "end";
   variant?: "default" | "subtle";
   openAt?: string;
@@ -76,6 +82,7 @@ export default function DatePicker({
   labels,
   min,
   max,
+  hasData,
   align = "start",
   variant = "default",
   openAt,
@@ -160,11 +167,12 @@ export default function DatePicker({
             {days.map((day) => {
               const disabled = Boolean((min && day < min) || (max && day > max));
               const outside = new Date(parseDate(day) ?? 0).getUTCMonth() !== month;
+              const empty = hasData ? !hasData(day) : false;
               return (
                 <button
                   key={day}
                   type="button"
-                  className={`${styles.day} ${outside ? styles.outside : ""} ${day === value ? styles.selected : ""}`}
+                  className={`${styles.day} ${outside ? styles.outside : ""} ${empty ? styles.empty : ""} ${day === value ? styles.selected : ""}`}
                   disabled={disabled}
                   onClick={() => {
                     onChange(day);

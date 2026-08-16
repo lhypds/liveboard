@@ -225,6 +225,9 @@ export default function Home() {
   const [store, setStore] = useState<Store>(loadStore);
   const isMobile = useIsMobile(MOBILE_BREAKPOINT);
   const [refreshingIds, setRefreshingIds] = useState<Set<string>>(new Set());
+  // A card that can re-read its data registers how (see `_setRefresh` below), and gets a
+  // Refresh button in its header. Keyed by instance id, like the reset handlers below.
+  const [refreshHandlers, setRefreshHandlers] = useState<Record<string, () => void | Promise<void>>>({});
   // A card that can put itself back to a clean state registers how (see `_setReset` below),
   // and gets a Reset button in its header. Keyed by instance id, so one Chat card resetting
   // leaves the others alone.
@@ -565,7 +568,9 @@ export default function Home() {
         title={displayTitle}
         actions={
           <>
-            {card.hasRefresh && <Refresh moduleId={moduleId(item.i)} onLoadingChange={setRefreshing} />}
+            {refreshHandlers[item.i] && (
+              <Refresh onRefresh={refreshHandlers[item.i]} onLoadingChange={setRefreshing} />
+            )}
             {resetHandlers[item.i] && <Reset onReset={resetHandlers[item.i]} />}
             <Info
               title={displayTitle}
@@ -625,6 +630,19 @@ export default function Home() {
             // This card instance's id, for components that need to tell themselves apart
             // from a copy of the same card (e.g. Chat owns one CLI process per card)
             _id: item.i,
+            // Cards that can re-read their data say how here, which is also what puts a Refresh
+            // button in their header. Pass null to take it away again. Re-reading only: this
+            // must not run a fetch script, so a click costs the card's own requests and nothing
+            // more.
+            _setRefresh: (fn: (() => void | Promise<void>) | null) => {
+              setRefreshHandlers((prev) => {
+                if (fn) return prev[item.i] === fn ? prev : { ...prev, [item.i]: fn };
+                if (!(item.i in prev)) return prev;
+                const next = { ...prev };
+                delete next[item.i];
+                return next;
+              });
+            },
             // Cards that can start over say how here, which is also what puts a Reset button
             // in their header. Pass null to take it away again.
             _setReset: (fn: (() => void | Promise<void>) | null) => {

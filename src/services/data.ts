@@ -5,7 +5,8 @@
  * The alternative is `import.meta.glob`, which resolves at build time: a fetch that ran after the
  * board was built is invisible until the next build, and every file kept on disk is bundled whether
  * it is looked at or not. Read through here instead, a card sees the folder as it is now, so
- * `fetch.sh` — or the board's Refresh button, which runs the same script — is enough on its own.
+ * `fetch.sh` on a cron is enough on its own — and the card's Refresh button, which re-runs these
+ * reads and nothing else, puts the newest crawl on screen without a rebuild.
  *
  * Lives in the board rather than in one module repo because the contract is the board's: any
  * module, in any repo, reaches its own data the same way (`@services/data`).
