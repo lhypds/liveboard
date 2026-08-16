@@ -5,6 +5,9 @@ node_modules/
 dist/
 data/users/
 data/images/
+# Where the crontab cron-install.sh writes sends each refresh's output, plus the crontab it saves
+# before rewriting one.
+logs/
 .claude/
 src/modules/
 board.config.json

@@ -146,6 +146,50 @@ rather than a crawl. Writing the folder stays with cron, a deploy, or running
 `refresh.sh` by hand.
 
 
+Scheduling
+----------
+
+`./cron-install.sh` puts a component's crawl on a schedule; `./cron-uninstall.sh`
+takes it off again. Run them on the box the board is deployed to, after
+`./setup.sh` has cloned the module repos.
+
+With nothing after them they ask, offering a list at each step — which module
+repo, which component in it, which of that component's scripts, any arguments,
+and how often:
+
+```
+==> 1/4  Which module repo?          ==> 4/4  How often should it run?
+   1) basic                             1) Every 15 minutes      */15 * * * *
+   2) data                              2) Every hour            0 * * * *
+   3) eitai                             …
+Choose [1-3, q to quit]: 2             10) Custom — type a cron expression
+```
+
+Every answer can be given up front instead, which is what a deploy script wants:
+
+```bash
+./cron-install.sh News --schedule "0 */4 * * *" -- --force
+./cron-install.sh --all                           # every component with a refresh.sh, 06:00 daily
+./cron-install.sh --list                          # what this board has installed
+./cron-uninstall.sh News                          # or --all
+```
+
+Output goes to `logs/cron-<component>.log` (gitignored). Both scripts are
+idempotent and tag every line they write with `# liveboard:<board dir>:<component>`,
+so they only ever replace or remove their own — another board on the same
+machine, and anything else in the crontab, is left alone. The crontab is saved
+to `logs/crontab.bak` before either script rewrites it.
+
+Two things that bite when a crawl works by hand and not from cron:
+
+- **PATH.** cron gives a job almost nothing, and `node` is usually under nvm.
+  Each line pins the directories `node` and `ft` were found in *at install time*,
+  so run `cron-install.sh` from a shell where `node -v` works.
+- **A fetch that no-ops.** Most of these stop as soon as they see today's file,
+  which is what makes them safe to call from a deploy — but it also means
+  scheduling one several times a day does nothing without `-- --force`.
+
+
 Notes
 -----
 
