@@ -5,7 +5,7 @@ import { ActionButton } from "@ui";
 type RefreshProps = {
   /**
    * Re-fetch what the card shows — its own `data/` folder, or whichever API it reads. Nothing
-   * runs on the server: fetching new data into a component's folder is `refresh.sh`'s job, on a
+   * runs on the server: fetching new data into a component's folder is `fetch.sh`'s job, on a
    * cron or by hand, and clicking this must never kick off a crawl. Like Reset, the button only
    * appears for cards that register a handler (see `_setRefresh` in Home).
    */

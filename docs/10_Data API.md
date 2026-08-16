@@ -117,7 +117,7 @@ Writing — a fetch script fills the folder
 
     cron        deploy
       │           │
-      └───────────┴──►  refresh.sh ──► fetch.mjs
+      └───────────┴──►  fetch.sh ──► fetch.mjs
                                           │
                                           ▼
                            src/modules/<repo>/News/data/2026-08-15.json
@@ -143,7 +143,7 @@ The card header's Refresh button is on the reading side only — it re-runs the
 card's own reads (see `_setRefresh` in `src/pages/Home/Home.tsx`) and never the
 refresh API, so a click costs a couple of requests to the board's own server
 rather than a crawl. Writing the folder stays with cron, a deploy, or running
-`refresh.sh` by hand.
+`fetch.sh` by hand.
 
 
 Scheduling
@@ -169,7 +169,7 @@ Every answer can be given up front instead, which is what a deploy script wants:
 
 ```bash
 ./cron-install.sh News --schedule "0 */4 * * *" -- --force
-./cron-install.sh --all                           # every component with a refresh.sh, 06:00 daily
+./cron-install.sh --all                           # every component with a fetch.sh, 06:00 daily
 ./cron-install.sh --list                          # what this board has installed
 ./cron-uninstall.sh News                          # or --all
 ```

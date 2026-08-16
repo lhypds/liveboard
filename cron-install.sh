@@ -7,7 +7,7 @@
 #
 #   ./cron-install.sh                                     ask
 #   ./cron-install.sh News --schedule "0 */4 * * *" -- --force
-#   ./cron-install.sh --all                               every component that ships a refresh.sh
+#   ./cron-install.sh --all                               every component that ships a fetch.sh
 #   ./cron-install.sh --list                              what this board has installed
 #   ./cron-install.sh --dry-run                           print the line, install nothing
 #
@@ -81,10 +81,10 @@ read_lines() {
   done
 }
 
-# Every component that ships a refresh.sh — what --all schedules, and how a name given on the
+# Every component that ships a fetch.sh — what --all schedules, and how a name given on the
 # command line is resolved to a path.
 declare -a ALL_NAMES=() ALL_PATHS=()
-for script in src/modules/*/*/refresh.sh; do
+for script in src/modules/*/*/fetch.sh; do
   [ -f "$script" ] || continue
   ALL_NAMES+=("$(basename "$(dirname "$script")")")
   ALL_PATHS+=("$BOARD/$script")
@@ -184,7 +184,7 @@ declare -a target_names=() target_paths=() target_args=()
 
 if [ "$do_all" -eq 1 ] || [ ${#names[@]} -gt 0 ]; then
   if [ ${#ALL_NAMES[@]} -eq 0 ]; then
-    echo "No src/modules/*/*/refresh.sh found — run ./setup.sh first to clone the module repos." >&2
+    echo "No src/modules/*/*/fetch.sh found — run ./setup.sh first to clone the module repos." >&2
     exit 1
   fi
   # Named components are checked against what is actually there, so a typo is a message rather than
@@ -198,7 +198,7 @@ if [ "$do_all" -eq 1 ] || [ ${#names[@]} -gt 0 ]; then
         fi
       done
       if [ "$found" -eq 0 ]; then
-        echo "No component named '$wanted' with a refresh.sh. Available:" >&2
+        echo "No component named '$wanted' with a fetch.sh. Available:" >&2
         printf '  %s\n' "${ALL_NAMES[@]}" >&2
         exit 1
       fi

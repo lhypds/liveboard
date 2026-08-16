@@ -23,7 +23,7 @@ function sendJson(res: ServerResponse, status: number, body: unknown) {
 }
 
 /**
- * `src/modules/<repo>/<module>/refresh.sh`, for whichever repo carries that component — the modules
+ * `src/modules/<repo>/<module>/fetch.sh`, for whichever repo carries that component — the modules
  * directory is one folder per cloned repo, and a board only knows components by name.
  *
  * Read per request rather than cached: a repo can be pulled in while the board is running.
@@ -39,7 +39,7 @@ async function resolveScript(moduleName: string): Promise<string | null> {
   }
 
   for (const repo of repos) {
-    const candidate = path.join(MODULES_DIR, repo, moduleName, "refresh.sh");
+    const candidate = path.join(MODULES_DIR, repo, moduleName, "fetch.sh");
     const isFile = await stat(candidate)
       .then((s) => s.isFile())
       .catch(() => false);
@@ -63,7 +63,7 @@ const middleware: Connect.NextHandleFunction = async (req, res, next) => {
   if (repo && !REPO_RE.test(repo)) return sendJson(res, 400, { error: "invalid repo" });
 
   const scriptPath = await resolveScript(moduleName);
-  if (!scriptPath) return sendJson(res, 404, { error: "refresh.sh not found" });
+  if (!scriptPath) return sendJson(res, 404, { error: "fetch.sh not found" });
 
   try {
     // stdout comes back with the answer: a script asked for a single item can print it, and
@@ -79,7 +79,7 @@ const middleware: Connect.NextHandleFunction = async (req, res, next) => {
 };
 
 /**
- * Runs a component's own `refresh.sh` on demand — `POST /api/refresh?module=<module>`, optionally
+ * Runs a component's own `fetch.sh` on demand — `POST /api/refresh?module=<module>`, optionally
  * `&repo=<owner/name>` for a component that can fetch one item rather than its whole dataset.
  *
  * Pairs with the data API: this writes the component's `data/` folder, that one serves it, so a
