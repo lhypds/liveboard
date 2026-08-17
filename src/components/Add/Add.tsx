@@ -10,6 +10,9 @@ type AddProps = {
 
 export default function Add({ items = [], onAdd }: AddProps) {
   const [open, setOpen] = useState(false);
+  // A pick leaves the pointer sitting inside the wrapper, where the hover rule would hold the list
+  // open; this latches it shut until the pointer comes back over the trigger (see the CSS)
+  const [dismissed, setDismissed] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,11 +28,20 @@ export default function Add({ items = [], onAdd }: AddProps) {
   function pick(id: string) {
     onAdd?.(id);
     setOpen(false);
+    setDismissed(true);
   }
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-open={open}>
-      <button type="button" className={styles.trigger} onClick={() => setOpen((v) => !v)}>
+    <div ref={wrapperRef} className={styles.wrapper} data-open={open} data-dismissed={dismissed}>
+      <button
+        type="button"
+        className={styles.trigger}
+        onPointerEnter={() => setDismissed(false)}
+        onClick={() => {
+          setDismissed(false);
+          setOpen((v) => !v);
+        }}
+      >
         <svg className={styles.icon} viewBox="0 0 24 24">
           <path d="M12 5v14" />
           <path d="M5 12h14" />

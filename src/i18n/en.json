@@ -8,7 +8,11 @@
     "title": "liveboard"
   },
   "export": {
-    "tooltip": "Export"
+    "tooltip": "Export",
+    "save": "Save image",
+    "ready": "Image ready — tap to save",
+    "done": "Saved",
+    "error": "Export failed"
   },
   "layoutIO": {
     "export": "Export",

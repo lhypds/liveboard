@@ -45,3 +45,11 @@
   background: black;
   color: white;
 }
+
+/* The follow-up tap on mobile: wide enough for the label, tall enough for a finger */
+.option[data-save="true"] {
+  width: auto;
+  min-width: 88px;
+  height: 30px;
+  font-weight: 600;
+}

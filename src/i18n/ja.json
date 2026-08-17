@@ -8,7 +8,11 @@
     "title": "liveboard"
   },
   "export": {
-    "tooltip": "エクスポート"
+    "tooltip": "エクスポート",
+    "save": "画像を保存",
+    "ready": "画像ができました。タップして保存",
+    "done": "保存しました",
+    "error": "エクスポートに失敗しました"
   },
   "layoutIO": {
     "export": "エクスポート",

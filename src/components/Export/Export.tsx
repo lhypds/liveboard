@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { toPng } from "html-to-image";
-import { ActionButton } from "@ui";
+import { toBlob } from "html-to-image";
+import { ActionButton, showToast } from "@ui";
+import { NeedsGestureError, saveFile, startActivationWindow } from "@services/download";
 import styles from "./export.module.css";
 
 const FORMATS = [{ key: "png", label: "PNG" }] as const;
+
+/**
+ * Retina detail without walking off the end of a canvas: iOS caps the backing store at 4096px a side
+ * on the older devices and the total area at ~16M px, and a canvas over either limit comes back
+ * blank rather than refusing.
+ */
+const PIXEL_RATIO = 2;
+const MAX_EDGE = 4096;
+const MAX_AREA = 16_000_000;
 
 type ExportProps = {
   title?: string;
@@ -14,10 +24,18 @@ function sanitizeFilename(name: string): string {
   return name.replace(/[\\/:*?"<>|]/g, "-").trim() || "export";
 }
 
+function pixelRatioFor(el: HTMLElement): number {
+  const { offsetWidth: w, offsetHeight: h } = el;
+  if (!w || !h) return PIXEL_RATIO;
+  return Math.min(PIXEL_RATIO, MAX_EDGE / Math.max(w, h), Math.sqrt(MAX_AREA / (w * h)));
+}
+
 export default function Export({ title }: ExportProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  /** A rendered PNG waiting for a tap to save it, because the tap that rendered it has expired */
+  const [pending, setPending] = useState<Blob | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -25,6 +43,7 @@ export default function Export({ title }: ExportProps) {
     function handleOutside(e: PointerEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setPending(null);
       }
     }
     function close() {
@@ -42,27 +61,67 @@ export default function Export({ title }: ExportProps) {
     };
   }, [open]);
 
+  /**
+   * Saves what we already rendered. Split out so the second, gesture-fresh tap can reuse it when the
+   * render outlived the first one.
+   */
+  async function save(blob: Blob) {
+    const filename = `${sanitizeFilename(title ?? "")}.png`;
+    try {
+      const outcome = await saveFile(blob, filename);
+      setPending(null);
+      setOpen(false);
+      if (outcome === "downloaded" || outcome === "shared") showToast(t("export.done"));
+    } catch (err) {
+      if (err instanceof NeedsGestureError) {
+        // Keep the bytes and let the user tap once more — the tap is all that is missing
+        setPending(blob);
+        setOpen(true);
+        showToast(t("export.ready"));
+        return;
+      }
+      // Handled here rather than thrown on, because the second tap calls this with no catch of its own
+      setPending(null);
+      setOpen(false);
+      showToast(t("export.error"));
+    }
+  }
+
   async function exportPng() {
     const card = wrapperRef.current?.closest<HTMLElement>("[data-modal-boundary]");
     if (!card || loading) return;
     setLoading(true);
+    const stillActivated = startActivationWindow();
     try {
-      const dataUrl = await toPng(card, {
-        pixelRatio: 2,
+      // Safari renders the foreignObject before webfonts settle and hands back a card with no text
+      await document.fonts?.ready;
+      const blob = await toBlob(card, {
+        pixelRatio: pixelRatioFor(card),
         backgroundColor: "#ffffff",
         filter: (node) => !(node instanceof HTMLElement && "cardActions" in node.dataset),
       });
-      const link = document.createElement("a");
-      link.download = `${sanitizeFilename(title ?? "")}.png`;
-      link.href = dataUrl;
-      link.click();
+      if (!blob) {
+        setOpen(false);
+        showToast(t("export.error"));
+        return;
+      }
+      // A render this slow has already spent the tap that started it; asking beats being ignored
+      if (!stillActivated()) {
+        setPending(blob);
+        setOpen(true);
+        showToast(t("export.ready"));
+        return;
+      }
+      await save(blob);
+    } catch {
+      setOpen(false);
+      showToast(t("export.error"));
     } finally {
       setLoading(false);
     }
   }
 
   function pick(format: (typeof FORMATS)[number]["key"]) {
-    setOpen(false);
     if (format === "png") void exportPng();
   }
 
@@ -76,11 +135,17 @@ export default function Export({ title }: ExportProps) {
         </svg>
       </ActionButton>
       <div className={styles.dropdown}>
-        {FORMATS.map(({ key, label }) => (
-          <button key={key} type="button" className={styles.option} onClick={() => pick(key)}>
-            {label}
+        {pending ? (
+          <button type="button" className={styles.option} data-save="true" onClick={() => void save(pending)}>
+            {t("export.save")}
           </button>
-        ))}
+        ) : (
+          FORMATS.map(({ key, label }) => (
+            <button key={key} type="button" className={styles.option} onClick={() => pick(key)}>
+              {label}
+            </button>
+          ))
+        )}
       </div>
     </div>
   );

@@ -13,6 +13,9 @@ type BoardSwitcherProps = {
 export default function BoardSwitcher({ names, active, onSelect, onAdd }: BoardSwitcherProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  // A pick leaves the pointer sitting inside the wrapper, where the hover rule would hold the list
+  // open; this latches it shut until the pointer comes back over the trigger (see the CSS)
+  const [dismissed, setDismissed] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,16 +31,26 @@ export default function BoardSwitcher({ names, active, onSelect, onAdd }: BoardS
   function pick(index: number) {
     onSelect(index);
     setOpen(false);
+    setDismissed(true);
   }
 
   function add() {
     onAdd();
     setOpen(false);
+    setDismissed(true);
   }
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-open={open}>
-      <button type="button" className={styles.trigger} onClick={() => setOpen((v) => !v)}>
+    <div ref={wrapperRef} className={styles.wrapper} data-open={open} data-dismissed={dismissed}>
+      <button
+        type="button"
+        className={styles.trigger}
+        onPointerEnter={() => setDismissed(false)}
+        onClick={() => {
+          setDismissed(false);
+          setOpen((v) => !v);
+        }}
+      >
         {active + 1}
       </button>
       <div className={styles.dropdown}>

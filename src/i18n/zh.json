@@ -8,7 +8,11 @@
     "title": "liveboard"
   },
   "export": {
-    "tooltip": "导出"
+    "tooltip": "导出",
+    "save": "保存图片",
+    "ready": "图片已生成，再点一下保存",
+    "done": "已保存",
+    "error": "导出失败"
   },
   "layoutIO": {
     "export": "导出",

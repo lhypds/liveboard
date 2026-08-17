@@ -19,6 +19,9 @@ type Props<T extends string> = {
  */
 export default function Dropdown<T extends string>({ value, options, onChange, ariaLabel }: Props<T>) {
   const [open, setOpen] = useState(false);
+  // A pick leaves the pointer sitting inside the wrapper, where the hover rule would hold the list
+  // open; this latches it shut until the pointer comes back over the trigger (see the CSS)
+  const [dismissed, setDismissed] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,17 +39,22 @@ export default function Dropdown<T extends string>({ value, options, onChange, a
   function pick(next: T) {
     onChange(next);
     setOpen(false);
+    setDismissed(true);
   }
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-open={open}>
+    <div ref={wrapperRef} className={styles.wrapper} data-open={open} data-dismissed={dismissed}>
       <button
         type="button"
         className={styles.trigger}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
-        onClick={() => setOpen((v) => !v)}
+        onPointerEnter={() => setDismissed(false)}
+        onClick={() => {
+          setDismissed(false);
+          setOpen((v) => !v);
+        }}
       >
         <span className={styles.triggerLabel}>{current?.label}</span>
         <span className={styles.caret} aria-hidden="true">

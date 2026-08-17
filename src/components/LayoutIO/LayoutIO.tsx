@@ -14,6 +14,9 @@ type LayoutIOProps = {
 export default function LayoutIO({ layout, configs, onImport }: LayoutIOProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  // A pick leaves the pointer sitting inside the wrapper, where the hover rule would hold the list
+  // open; this latches it shut until the pointer comes back over the trigger (see the CSS)
+  const [dismissed, setDismissed] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,11 +44,13 @@ export default function LayoutIO({ layout, configs, onImport }: LayoutIOProps) {
     a.click();
     URL.revokeObjectURL(url);
     setOpen(false);
+    setDismissed(true);
   }
 
   function handleImportClick() {
     fileInputRef.current?.click();
     setOpen(false);
+    setDismissed(true);
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -71,8 +76,16 @@ export default function LayoutIO({ layout, configs, onImport }: LayoutIOProps) {
   }
 
   return (
-    <div ref={wrapperRef} className={styles.wrapper} data-open={open}>
-      <button type="button" className={styles.trigger} onClick={() => setOpen((v) => !v)}>
+    <div ref={wrapperRef} className={styles.wrapper} data-open={open} data-dismissed={dismissed}>
+      <button
+        type="button"
+        className={styles.trigger}
+        onPointerEnter={() => setDismissed(false)}
+        onClick={() => {
+          setDismissed(false);
+          setOpen((v) => !v);
+        }}
+      >
         <svg className={styles.icon} viewBox="0 -960 960 960">
           <path d="M510-570v-270h330v270H510ZM120-450v-390h330v390H120Zm390 330v-390h330v390H510Zm-390 0v-270h330v270H120Zm60-390h210v-270H180v270Zm390 330h210v-270H570v270Zm0-450h210v-150H570v150ZM180-180h210v-150H180v150Zm210-330Zm180-120Zm0 180ZM390-330Z" />
         </svg>
