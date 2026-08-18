@@ -1,0 +1,8 @@
+# pnpm ignores the npm "workspaces" field in package.json, so the module repos that pull.sh clones
+# into src/modules/ are declared here. Without this, `pnpm install` installs only the root's
+# dependencies and every module dep (mapbox-gl, pyodide, prismjs, ...) silently goes missing.
+#
+# The glob is deliberate: src/modules/ is gitignored and its contents differ per deployment
+# (board.config.json decides which module repos get cloned), so whichever dirs exist are picked up.
+packages:
+  - src/modules/*

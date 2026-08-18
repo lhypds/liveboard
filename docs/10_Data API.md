@@ -194,7 +194,7 @@ Notes
 -----
 
 - **Dev does not reload on a write.** The files are no longer part of the module
-  graph, so writing one while `npm run dev` is running leaves the page alone —
+  graph, so writing one while `pnpm run dev` is running leaves the page alone —
   the card picks it up on its next read.
 - **Component names are the address.** Two components in different repos sharing
   a folder name would share a route; the first repo found wins. Names are

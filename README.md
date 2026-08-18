@@ -29,7 +29,7 @@ Frontend credentials used by only one component are kept in that component's
 builds the board.
 
 Then, run  
-`npm run dev`  
+`pnpm run dev`  
 to start.  
 
 To start with PM2  

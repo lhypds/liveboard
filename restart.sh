@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 bash pull.sh
-# --include=dev: the build needs typescript/vite/@types, which npm skips when the deploy shell has
-# NODE_ENV=production (or omit=dev in .npmrc). Without it `npm run build` dies on TS2688.
-pnpm install --include=dev
+# No --include=dev here: that is an npm flag. pnpm parses it as a package name and installs the
+# unrelated npm package `dev`, rewriting package.json and pnpm-lock.yaml on every restart. pnpm
+# ignores NODE_ENV=production and installs devDependencies anyway, so the build gets typescript/vite.
+pnpm install
 pnpm run build
 pnpm pm2 restart ecosystem.config.cjs --update-env

@@ -79,11 +79,13 @@ done
 
 echo ""
 echo "Installing dependencies..."
-# --include=dev: see restart.sh — the build needs the devDependencies even on a production host.
-npm install --include=dev
+# pnpm, like the rest of the deploy scripts — mixing it with npm leaves two lockfiles fighting over
+# node_modules. No --include=dev / --prod=false needed: pnpm ignores NODE_ENV and installs
+# devDependencies anyway, which is what `pnpm run build` needs for typescript/vite.
+pnpm install
 
 echo "Building..."
-npm run build
+pnpm run build
 
 echo ""
 if [ -n "$FAILED_MODULES" ]; then

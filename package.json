@@ -3,13 +3,10 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "workspaces": [
-    "src/modules/*"
-  ],
   "scripts": {
     "dev": "vite",
-    "build": "npm run typecheck && vite build",
-    "typecheck": "tsc -b && npm run typecheck --workspaces --if-present",
+    "build": "pnpm run typecheck && vite build",
+    "typecheck": "tsc -b && pnpm -r --if-present run typecheck",
     "lint": "eslint .",
     "preview": "vite preview"
   },
