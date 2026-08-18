@@ -830,6 +830,14 @@ export default function Home() {
           // thing a pin is supposed to prevent.
           preventCollision={freeDrag}
           draggableHandle=".card-drag-handle"
+          // The header is the drag handle and the card's buttons sit in it, so a touch
+          // on Edit or Info is a drag start as far as the grid is concerned — and the
+          // drag calls preventDefault() on `touchstart`, which is what stops the browser
+          // from ever synthesising the tap's click. On a mouse that costs nothing (a drag
+          // of no distance, see handleDragStop), but on a touchscreen it swallows the
+          // button entirely: the card moves, the button never fires. Naming the button
+          // strip here makes the grid let the touch through untouched.
+          draggableCancel="[data-card-actions]"
           width={GRID_WIDTH}
         >
           {layout.map((item) => (
