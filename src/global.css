@@ -29,6 +29,15 @@ select:focus {
   outline: none;
 }
 
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .cursor-hidden,
 .cursor-hidden * {
   cursor: none !important;
