@@ -6,3 +6,17 @@
 # (board.config.json decides which module repos get cloned), so whichever dirs exist are picked up.
 packages:
   - src/modules/*
+
+# Each module repo keeps its own pnpm-lock.yaml beside its package.json. With the default shared
+# lockfile every module dir on disk got an `importers:` entry in the root pnpm-lock.yaml, so the
+# committed lockfile recorded one machine's module set and every deploy with a different set rewrote
+# it. The root lockfile now locks the board's own dependencies only.
+sharedWorkspaceLockfile: false
+
+# Modules list react / react-i18next as peerDependencies and must share the root's copy: a module's
+# own copy is a second React in the bundle (hooks throw "Invalid hook call") and a second
+# react-i18next that never sees the board's i18n instance. Separate lockfiles give each module its
+# own virtual store, so auto-installing peers would put exactly those copies there; with this off, a
+# module's `import "react"` walks up to the root node_modules. resolve.dedupe in vite.config.ts
+# covers a module that lists react as a regular dependency anyway.
+autoInstallPeers: false

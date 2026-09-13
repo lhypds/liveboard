@@ -7,17 +7,3 @@ bash pull.sh
 pnpm install
 pnpm run build
 pnpm pm2 restart ecosystem.config.cjs --update-env
-
-# Every pnpm command here rewrites pnpm-lock.yaml — install, run, even a bare `pnpm exec` — because
-# src/modules/* are workspace packages and pnpm resyncs the lockfile's `importers:` block to the
-# module dirs actually on disk. This deploy's board.config.json selects fewer module repos than the
-# machine the lockfile was committed from, so the entries for the missing ones get dropped every
-# time. That is why this has to be the last thing in the script rather than sitting after the
-# install: the build and the pm2 restart would each put it straight back.
-# node_modules is built and the service is up by now, so the rewrite has served its purpose. Drop
-# it, so `git status` stays clean and the next `git pull` has nothing to trip over. Same rule as
-# pull.sh: only when it is the sole local change, so a machine with real work stays untouched.
-if ! git diff --quiet HEAD -- pnpm-lock.yaml \
-  && [ -z "$(git diff --name-only HEAD | grep -v '^pnpm-lock\.yaml$')" ]; then
-  git checkout HEAD -- pnpm-lock.yaml
-fi

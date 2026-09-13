@@ -10,24 +10,6 @@ if [ -f board.config.json ]; then
 fi
 
 echo "==> Pulling liveboard..."
-
-# `pnpm install` rewrites pnpm-lock.yaml whenever a module repo changes its own dependencies, and
-# also whenever this deploy's board.config.json selects a different set of module repos than the
-# committed lockfile was generated from — src/modules/* are workspace packages, so they get an
-# entry each under `importers:`. On a deploy clone that regenerated lockfile is not the source of
-# truth, and leaving it modified makes the pull below abort ("Your local changes ... would be
-# overwritten by merge"), taking restart.sh down with it.
-# Only discard it when it is the sole local change, so a machine with real work stays untouched.
-if ! git diff --quiet HEAD -- pnpm-lock.yaml; then
-  if [ -z "$(git diff --name-only HEAD | grep -v '^pnpm-lock\.yaml$')" ]; then
-    echo "  Discarding regenerated pnpm-lock.yaml (pnpm install rewrites it)..."
-    git checkout HEAD -- pnpm-lock.yaml
-  else
-    echo "  NOTE: pnpm-lock.yaml is modified alongside other local changes — leaving it as is."
-    echo "        If the pull below fails, commit or stash your changes first."
-  fi
-fi
-
 git pull
 
 echo ""

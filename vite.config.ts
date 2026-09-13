@@ -88,6 +88,11 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
     },
     resolve: {
+      // Module repos install their own dependencies into src/modules/<module>/node_modules (see
+      // pnpm-workspace.yaml). A module that lists one of these as a regular dependency would get its
+      // copy bundled beside the board's — two Reacts break hooks, and a second react-i18next never
+      // sees the board's i18n instance — so they always resolve from the root.
+      dedupe: ["react", "react-dom", "i18next", "react-i18next"],
       alias: {
         "@ui": path.resolve(__dirname, "src/ui"),
         "@components": path.resolve(__dirname, "src/components"),
