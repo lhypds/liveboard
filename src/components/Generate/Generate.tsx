@@ -60,9 +60,29 @@ type GenerateProps = {
   onStatus?: (status: string, isWarning?: boolean) => void;
   /** True for the whole run — the wait for the first words, and the writing after */
   onBusy?: (busy: boolean) => void;
+  /**
+   * What the box holds each time it opens, for a card whose instruction is already
+   * written on it — Decision's question. Without it the box keeps what was left in it
+   */
+  instruction?: () => string;
+  /**
+   * Asks for the card's next text some other way than simple-ai's edit endpoint —
+   * Decision's has an endpoint of its own. Resolves with the whole text at once, in
+   * the form `content` reads it, so the run is one write and one undo like any other
+   */
+  run?: (instruction: string, signal: AbortSignal) => Promise<string>;
 };
 
-export default function Generate({ content, prompt, onGenerated, onCommit, onStatus, onBusy }: GenerateProps) {
+export default function Generate({
+  content,
+  prompt,
+  onGenerated,
+  onCommit,
+  onStatus,
+  onBusy,
+  instruction: initialInstruction,
+  run,
+}: GenerateProps) {
   const { t } = useTranslation();
   const label = t("generate.tooltip");
   const [open, setOpen] = useState(false);
@@ -97,6 +117,7 @@ export default function Generate({ content, prompt, onGenerated, onCommit, onSta
       showToast(t("generate.noCredential"));
       return;
     }
+    if (initialInstruction) setInstruction(initialInstruction());
     setOpen(true);
   }
 
@@ -132,29 +153,31 @@ export default function Generate({ content, prompt, onGenerated, onCommit, onSta
     let streamed = false;
     let lastWrite = 0;
     try {
-      const next = await generateEdit({
-        content: original,
-        instruct: prompt,
-        prompt: edit,
-        // Until the first words land there is nothing to watch, so the card
-        // carries whatever simple-ai is doing; after that the text speaks for itself
-        onStatus: (status) => {
-          if (!streamed && !controller.signal.aborted) onStatus?.(status);
-        },
-        onText: (partial) => {
-          if (controller.signal.aborted) return;
-          if (!streamed) {
-            streamed = true;
-            onStatus?.("");
-          }
-          const now = Date.now();
-          if (now - lastWrite < STREAM_INTERVAL_MS) return;
-          lastWrite = now;
-          // The final write below trims whatever of the original is left over
-          write(overlay(partial, original));
-        },
-        signal: controller.signal,
-      });
+      const next = run
+        ? await run(edit, controller.signal)
+        : await generateEdit({
+            content: original,
+            instruct: prompt,
+            prompt: edit,
+            // Until the first words land there is nothing to watch, so the card
+            // carries whatever simple-ai is doing; after that the text speaks for itself
+            onStatus: (status) => {
+              if (!streamed && !controller.signal.aborted) onStatus?.(status);
+            },
+            onText: (partial) => {
+              if (controller.signal.aborted) return;
+              if (!streamed) {
+                streamed = true;
+                onStatus?.("");
+              }
+              const now = Date.now();
+              if (now - lastWrite < STREAM_INTERVAL_MS) return;
+              lastWrite = now;
+              // The final write below trims whatever of the original is left over
+              write(overlay(partial, original));
+            },
+            signal: controller.signal,
+          });
       if (controller.signal.aborted) return;
       if (!next.trim()) {
         warn(t("generate.emptyResult"));

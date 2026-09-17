@@ -143,10 +143,42 @@ async function handleGenerateEdit(baseUrl: string, req: Connect.IncomingMessage,
   }
 }
 
+/**
+ * Fills a Decision card through simple-ai's `/api/generate/decision`. `question`
+ * is either the question text or a draft decision object to improve; simple-ai
+ * checks which, so it goes up as it came. The answer is one JSON object rather
+ * than a stream, and simple-ai's own status and `{ error }` body are passed back
+ * unchanged — only the credential needs this end, as with the edit route above.
+ */
+async function handleGenerateDecision(baseUrl: string, req: Connect.IncomingMessage, res: ServerResponse) {
+  const { question, token, model } = JSON.parse(await readBody(req, MAX_GENERATE_BODY_BYTES)) as {
+    question?: unknown;
+    token?: string;
+    model?: string;
+  };
+  if (!token) return sendJson(res, 401, { error: "no simple-ai credential" });
+  if (!question) return sendJson(res, 400, { error: "question is required" });
+
+  const upstream = await fetch(`${baseUrl}/api/generate/decision`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question,
+      auth: token,
+      session: newSessionId(),
+      ...(model ? { model } : {}),
+    }),
+  });
+  const body = (await upstream.json().catch(() => null)) as unknown;
+  if (!body) return sendJson(res, upstream.ok ? 502 : upstream.status, { error: `HTTP ${upstream.status}` });
+  sendJson(res, upstream.status, body);
+}
+
 function middleware(baseUrl: string): Connect.NextHandleFunction {
   const routes: Record<string, (req: Connect.IncomingMessage, res: ServerResponse) => Promise<void>> = {
     "/api/sc/login": (req, res) => handleLogin(baseUrl, req, res),
     "/api/sc/generate/edit": (req, res) => handleGenerateEdit(baseUrl, req, res),
+    "/api/sc/generate/decision": (req, res) => handleGenerateDecision(baseUrl, req, res),
   };
 
   return async (req, res, next) => {
@@ -175,8 +207,8 @@ export function resolveBaseUrl(configured?: string): string {
 }
 
 /**
- * Talks to simple-ai on the board's behalf: logging in, and rewriting a card's
- * text. Both have to happen here rather than in the browser — the login token
+ * Talks to simple-ai on the board's behalf: logging in, rewriting a card's text,
+ * and filling a Decision card. All of them have to happen here rather than in the browser — the login token
  * comes back as an HttpOnly cookie for another origin, which page scripts can
  * neither read nor send. Registered for preview as well as dev because
  * production serves through `vite preview` (pm2).

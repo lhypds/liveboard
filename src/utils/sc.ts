@@ -194,3 +194,59 @@ export async function generateEdit({
 
   return text;
 }
+
+export type DecisionDimension = { name: string; analysis: string; conclusion: string };
+
+/** A comparison as simple-ai's decision endpoint writes it */
+export type Decision = {
+  options: string[];
+  dimensions: DecisionDimension[];
+  overall_analysis: string;
+  overall_conclusion: string;
+};
+
+/** Any part of a Decision, to be filled in and improved rather than started over */
+export type DecisionDraft = Partial<Decision>;
+
+function decisionText(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+/**
+ * Compares options for a question, or improves a draft comparison, through the
+ * board's own server (see server/sc.ts). Resolves with the whole decision at once
+ * — nothing streams — and rejects with whatever simple-ai reported.
+ */
+export async function generateDecision(input: string | DecisionDraft, signal?: AbortSignal): Promise<Decision> {
+  const { token } = getScAccount();
+  if (!token) throw new NoScCredentialError();
+
+  // simple-ai.io still calls the overall analysis `analysis`; the endpoint is being
+  // moved to `overall_analysis`. Each version skips the name it doesn't know, so a
+  // draft carries both and an answer is read from either
+  const question =
+    typeof input === "string" ? input : { ...input, analysis: input.overall_analysis };
+
+  const res = await fetch("/api/sc/generate/decision", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, token }),
+    signal,
+  });
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) throw new Error(decisionText(body.error) || `HTTP ${res.status}`);
+
+  if (!Array.isArray(body.options) || !Array.isArray(body.dimensions)) {
+    throw new Error("simple-ai returned an invalid decision");
+  }
+  return {
+    options: body.options.map(decisionText),
+    dimensions: body.dimensions.map((dimension: Record<string, unknown> | null) => ({
+      name: decisionText(dimension?.name),
+      analysis: decisionText(dimension?.analysis),
+      conclusion: decisionText(dimension?.conclusion),
+    })),
+    overall_analysis: decisionText(body.overall_analysis) || decisionText(body.analysis),
+    overall_conclusion: decisionText(body.overall_conclusion),
+  };
+}

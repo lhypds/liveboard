@@ -230,6 +230,11 @@ type GenerateTarget = {
   // that opening stretch too: it is the one the board's own overlay is covering,
   // and the card is what shows through it.
   onBusy?: (busy: boolean) => void;
+  // What the instruction box opens with, and how to ask for the card's next text
+  // when simple-ai's edit endpoint isn't it — Decision opens on its own question and
+  // fills itself from the decision endpoint (see Generate.tsx)
+  instruction?: () => string;
+  run?: (instruction: string, signal: AbortSignal) => Promise<string>;
 };
 
 // One finished Generate run: the card's text before it, and the text it left
@@ -679,6 +684,8 @@ export default function Home() {
               <Generate
                 content={generate.content}
                 prompt={generate.prompt}
+                instruction={generate.instruction}
+                run={generate.run}
                 onGenerated={generate.onGenerated}
                 onCommit={(before, after) => {
                   recordGeneration(item.i, before, after);
