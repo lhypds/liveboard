@@ -195,11 +195,12 @@ export async function generateEdit({
   return text;
 }
 
+export type DecisionOption = { name: string; advantages_disadvantages: string };
 export type DecisionDimension = { name: string; analysis: string; conclusion: string };
 
 /** A comparison as simple-ai's decision endpoint writes it */
 export type Decision = {
-  options: string[];
+  options: DecisionOption[];
   dimensions: DecisionDimension[];
   overall_analysis: string;
   overall_conclusion: string;
@@ -221,11 +222,17 @@ export async function generateDecision(input: string | DecisionDraft, signal?: A
   const { token } = getScAccount();
   if (!token) throw new NoScCredentialError();
 
-  // simple-ai.io still calls the overall analysis `analysis`; the endpoint is being
-  // moved to `overall_analysis`. Each version skips the name it doesn't know, so a
-  // draft carries both and an answer is read from either
+  // simple-ai.io still takes and answers options as plain names; the endpoint is moving
+  // to `{ name, advantages_disadvantages }`, and still takes a plain name too. So an
+  // option goes up as just its name until it has pros and cons written, and an answer
+  // is read in either shape
   const question =
-    typeof input === "string" ? input : { ...input, analysis: input.overall_analysis };
+    typeof input === "string"
+      ? input
+      : {
+          ...input,
+          options: input.options?.map((option) => (option.advantages_disadvantages.trim() ? option : option.name)),
+        };
 
   const res = await fetch("/api/sc/generate/decision", {
     method: "POST",
@@ -240,13 +247,17 @@ export async function generateDecision(input: string | DecisionDraft, signal?: A
     throw new Error("simple-ai returned an invalid decision");
   }
   return {
-    options: body.options.map(decisionText),
+    options: body.options.map((option: Record<string, unknown> | string | null) =>
+      typeof option === "string"
+        ? { name: option, advantages_disadvantages: "" }
+        : { name: decisionText(option?.name), advantages_disadvantages: decisionText(option?.advantages_disadvantages) },
+    ),
     dimensions: body.dimensions.map((dimension: Record<string, unknown> | null) => ({
       name: decisionText(dimension?.name),
       analysis: decisionText(dimension?.analysis),
       conclusion: decisionText(dimension?.conclusion),
     })),
-    overall_analysis: decisionText(body.overall_analysis) || decisionText(body.analysis),
+    overall_analysis: decisionText(body.overall_analysis),
     overall_conclusion: decisionText(body.overall_conclusion),
   };
 }
