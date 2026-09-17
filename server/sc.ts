@@ -146,13 +146,15 @@ async function handleGenerateEdit(baseUrl: string, req: Connect.IncomingMessage,
 /**
  * Fills a Decision card through simple-ai's `/api/generate/decision`. `question`
  * is either the question text or a draft decision object to improve; simple-ai
- * checks which, so it goes up as it came. The answer is one JSON object rather
+ * checks which, so it goes up as it came, with the card's `background` beside it
+ * either way. The answer is one JSON object rather
  * than a stream, and simple-ai's own status and `{ error }` body are passed back
  * unchanged — only the credential needs this end, as with the edit route above.
  */
 async function handleGenerateDecision(baseUrl: string, req: Connect.IncomingMessage, res: ServerResponse) {
-  const { question, token, model } = JSON.parse(await readBody(req, MAX_GENERATE_BODY_BYTES)) as {
+  const { question, background, token, model } = JSON.parse(await readBody(req, MAX_GENERATE_BODY_BYTES)) as {
     question?: unknown;
+    background?: string;
     token?: string;
     model?: string;
   };
@@ -164,6 +166,7 @@ async function handleGenerateDecision(baseUrl: string, req: Connect.IncomingMess
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       question,
+      ...(background ? { background } : {}),
       auth: token,
       session: newSessionId(),
       ...(model ? { model } : {}),

@@ -195,12 +195,13 @@ export async function generateEdit({
   return text;
 }
 
-export type DecisionOption = { name: string; advantages_disadvantages: string };
-export type DecisionDimension = { name: string; analysis: string; conclusion: string };
+/** One option's pros and cons on a single dimension */
+export type DecisionDimensionOption = { name: string; pros_cons: string };
+export type DecisionDimension = { name: string; options: DecisionDimensionOption[]; analysis: string; conclusion: string };
 
 /** A comparison as simple-ai's decision endpoint writes it */
 export type Decision = {
-  options: DecisionOption[];
+  options: string[];
   dimensions: DecisionDimension[];
   overall_analysis: string;
   overall_conclusion: string;
@@ -215,29 +216,23 @@ function decisionText(value: unknown): string {
 
 /**
  * Compares options for a question, or improves a draft comparison, through the
- * board's own server (see server/sc.ts). Resolves with the whole decision at once
- * — nothing streams — and rejects with whatever simple-ai reported.
+ * board's own server (see server/sc.ts). `background` is the asker's situation,
+ * priorities and constraints, which the answer is tailored to; it can be empty.
+ * Resolves with the whole decision at once — nothing streams — and rejects with
+ * whatever simple-ai reported.
  */
-export async function generateDecision(input: string | DecisionDraft, signal?: AbortSignal): Promise<Decision> {
+export async function generateDecision(
+  input: string | DecisionDraft,
+  background: string,
+  signal?: AbortSignal,
+): Promise<Decision> {
   const { token } = getScAccount();
   if (!token) throw new NoScCredentialError();
-
-  // simple-ai.io still takes and answers options as plain names; the endpoint is moving
-  // to `{ name, advantages_disadvantages }`, and still takes a plain name too. So an
-  // option goes up as just its name until it has pros and cons written, and an answer
-  // is read in either shape
-  const question =
-    typeof input === "string"
-      ? input
-      : {
-          ...input,
-          options: input.options?.map((option) => (option.advantages_disadvantages.trim() ? option : option.name)),
-        };
 
   const res = await fetch("/api/sc/generate/decision", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, token }),
+    body: JSON.stringify({ question: input, background, token }),
     signal,
   });
   const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
@@ -247,13 +242,15 @@ export async function generateDecision(input: string | DecisionDraft, signal?: A
     throw new Error("simple-ai returned an invalid decision");
   }
   return {
-    options: body.options.map((option: Record<string, unknown> | string | null) =>
-      typeof option === "string"
-        ? { name: option, advantages_disadvantages: "" }
-        : { name: decisionText(option?.name), advantages_disadvantages: decisionText(option?.advantages_disadvantages) },
-    ),
+    options: body.options.map(decisionText),
     dimensions: body.dimensions.map((dimension: Record<string, unknown> | null) => ({
       name: decisionText(dimension?.name),
+      options: (Array.isArray(dimension?.options) ? dimension.options : []).map(
+        (option: Record<string, unknown> | null) => ({
+          name: decisionText(option?.name),
+          pros_cons: decisionText(option?.pros_cons),
+        }),
+      ),
       analysis: decisionText(dimension?.analysis),
       conclusion: decisionText(dimension?.conclusion),
     })),
