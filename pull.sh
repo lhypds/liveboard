@@ -58,5 +58,17 @@ if [ -d src/modules ]; then
   done
 fi
 
+# modules.config.json is gitignored but imported by each module's index.ts, so a freshly cloned
+# module needs it before the build. Done here rather than only in setup.sh because restart.sh also
+# clones new modules (via this script) and goes straight to the build.
+for example in src/modules/*/modules.config.json.example; do
+  [ -f "$example" ] || continue
+  target="${example%.example}"
+  if [ ! -f "$target" ]; then
+    cp "$example" "$target"
+    echo "  Copied $example to $target"
+  fi
+done
+
 echo ""
 echo "Done."

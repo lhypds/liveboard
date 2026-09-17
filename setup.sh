@@ -67,16 +67,6 @@ for setup in src/modules/*/setup.sh; do
   fi
 done
 
-# modules.config.json — fallback for module repos that have no setup.sh yet
-for example in src/modules/*/modules.config.json.example; do
-  [ -f "$example" ] || continue
-  target="${example%.example}"
-  if [ ! -f "$target" ]; then
-    cp "$example" "$target"
-    echo "Copied $example to $target"
-  fi
-done
-
 echo ""
 echo "Installing dependencies..."
 # pnpm, like the rest of the deploy scripts — mixing it with npm leaves two lockfiles fighting over
