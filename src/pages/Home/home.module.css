@@ -99,8 +99,11 @@
 /* News hangs its category tabs off the very top-left corner of the content box, and
    that strip carries a border of its own. There is no full-content border to protect
    here, so the 1px the veil normally leaves standing only exposes two sides of that
-   button — the veil reaches the corner instead. */
-.contentWrapper[data-module="News"] .statusOverlay {
+   button — the veil reaches the corner instead. Decision is the same: its edges are
+   the question bar's, the table's and the two boxes', so the 1px left standing would
+   keep bits of those black among the veiled grey ones. */
+.contentWrapper[data-module="News"] .statusOverlay,
+.contentWrapper[data-module="Decision"] .statusOverlay {
   inset: 0;
 }
 
